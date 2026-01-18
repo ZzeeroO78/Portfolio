@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Time Zones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <h1 class="nav-title">🌍 World Time Zones</h1>
+                <div class="nav-controls">
+                    <button id="darkModeToggle" class="nav-btn" title="Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="settingsBtn" class="nav-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header>
+            <h2>Check the current time in major cities around the world</h2>
+            <p id="currentTime" class="header-time"></p>
+        </header>
+
+        <!-- Search & Controls Section -->
+        <div class="controls-section">
+            <div class="search-section">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-box" 
+                    placeholder="Search cities..."
+                >
+            </div>
+
+            <div class="controls">
+                <button id="timeFormatBtn" class="btn" title="Toggle 12/24 hour format">
+                    <i class="fas fa-clock"></i> 24H
+                </button>
+                <button id="sortBtn" class="btn" title="Sort cities">
+                    <i class="fas fa-sort"></i> Sort
+                </button>
+                <button id="add-city-btn" class="btn btn-primary" title="Add new city">
+                    <i class="fas fa-plus"></i> Add City
+                </button>
+                <button id="resetBtn" class="btn" title="Reset to default cities">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">Cities</span>
+                <span class="stat-value" id="cityCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Latest Update</span>
+                <span class="stat-value" id="updateTime">Now</span>
+            </div>
+        </div>
+
+        <!-- Cities Grid -->
+        <div id="citiesGrid" class="cities-grid">
+            <!-- Cities will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Add City Modal -->
+    <div id="addCityModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2><i class="fas fa-plus-circle"></i> Add a New City</h2>
+            <p class="modal-hint">Enter a major city name (e.g., Tokyo, Paris, Mumbai)</p>
+            <input 
+                type="text" 
+                id="cityInput" 
+                class="modal-input"
+                placeholder="City name..."
+                autocomplete="off"
+            >
+            <div id="suggestions" class="suggestions"></div>
+            <button id="confirmAddBtn" class="btn btn-primary btn-full">Add City</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+            <div class="settings-group">
+                <label class="setting-item">
+                    <input type="checkbox" id="showWeather" checked>
+                    <span>Show Weather Info</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="showSeconds" checked>
+                    <span>Show Seconds</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="useF" unchecked>
+                    <span>Use Fahrenheit</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
