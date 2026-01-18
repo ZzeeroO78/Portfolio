@@ -1,0 +1,36 @@
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.sublime-workspace
+*.sublime-project
+
+# Node/npm
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# Build/Deploy
+dist/
+build/
+.env
+.env.local
+
+# Dependencies
+.cache/
+*.log
