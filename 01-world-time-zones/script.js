@@ -878,41 +878,62 @@ function debounce(func, wait) {
 
 // Get current time for a city
 function getTimeForCity(timezone) {
-    const date = new Date();
-    const options = {
-        timeZone: timezone,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: !use24HourFormat
-    };
-    let timeString = date.toLocaleString('en-US', options);
-    
-    if (!showSeconds) {
-        timeString = timeString.split(':').slice(0, 2).join(':');
-        if (!use24HourFormat) {
-            const parts = timeString.split(' ');
-            timeString = parts[0] + ' ' + parts[1];
+    try {
+        const date = new Date();
+        
+        // Format the time for the specific timezone
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: timezone,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: !use24HourFormat
+        });
+        
+        const timeParts = formatter.formatToParts(date);
+        let hours = '', minutes = '', seconds = '', period = '';
+        
+        for (const part of timeParts) {
+            if (part.type === 'hour') hours = part.value;
+            if (part.type === 'minute') minutes = part.value;
+            if (part.type === 'second') seconds = part.value;
+            if (part.type === 'dayPeriod') period = part.value;
         }
+        
+        if (!showSeconds) {
+            return `${hours}:${minutes}${period ? ' ' + period : ''}`;
+        } else {
+            return `${hours}:${minutes}:${seconds}${period ? ' ' + period : ''}`;
+        }
+    } catch (error) {
+        // Fallback if timezone is invalid
+        return 'Invalid TZ';
     }
-    
-    return timeString;
 }
 
 // Get header time
 function updateHeaderTime() {
     const date = new Date();
-    const options = {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: !use24HourFormat
-    };
-    document.getElementById('currentTime').textContent = date.toLocaleString('en-US', options);
+    const weekday = date.toLocaleString('en-US', { weekday: 'short' });
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    let minutes = String(date.getMinutes()).padStart(2, '0');
+    let seconds = String(date.getSeconds()).padStart(2, '0');
+    let ampm = '';
+    
+    if (!use24HourFormat) {
+        ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+    }
+    
+    hours = String(hours).padStart(2, '0');
+    
+    const timeString = `${weekday}, ${month} ${day}, ${year} ${hours}:${minutes}:${seconds}${ampm ? ' ' + ampm : ''}`;
+    document.getElementById('currentTime').textContent = timeString;
 }
 
 // Get date for a city
