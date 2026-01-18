@@ -1,98 +1,103 @@
-// Service Worker for offline support
-const CACHE_NAME = 'world-time-v2.1';
-const urlsToCache = [
-  '/Portfolio/01-world-time-zones/',
-  '/Portfolio/01-world-time-zones/index.html',
-  '/Portfolio/01-world-time-zones/styles.css',
-  '/Portfolio/01-world-time-zones/script.js',
-  '/Portfolio/01-world-time-zones/manifest.json'
+/**
+ * Service Worker for World Time Zones App
+ * Enables offline functionality and caching strategies
+ * Version: 2.1
+ */
+
+const CACHE_NAME = 'world-time-zones-v2.1';
+const STATIC_FILES = [
+    '/',
+    '/index.html',
+    '/styles.css?v=2.0',
+    '/script.js?v=2.1',
+    '/manifest.json'
 ];
 
+// Install event - cache static files
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(response => {
-          if (!response || response.status !== 200 || response.type === 'error') {
-            return response;
-          }
-
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(event.request, responseToCache);
+    console.log('Service Worker installing...');
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            console.log('Cache opened');
+            return cache.addAll(STATIC_FILES).catch(err => {
+                console.log('Cache addAll error:', err);
+                // Don't fail install if some resources aren't available
+                return Promise.resolve();
             });
-
-          return response;
-        });
-      })
-      .catch(() => {
-        return caches.match('/Portfolio/01-world-time-zones/index.html');
-      })
-  );
+        })
+    );
+    self.skipWaiting();
 });
 
-// Handle background sync
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-cities') {
-    event.waitUntil(syncCities());
-  }
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
+    console.log('Service Worker activating...');
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+    self.clients.claim();
 });
 
-async function syncCities() {
-  try {
-    const response = await fetch('/api/cities');
-    const data = await response.json();
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put('/api/cities', new Response(JSON.stringify(data)));
-  } catch (error) {
-    console.error('Sync failed:', error);
-  }
-}
+// Fetch event - serve from cache, fallback to network
+self.addEventListener('fetch', event => {
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') {
+        return;
+    }
 
-// Handle push notifications
-self.addEventListener('push', event => {
-  if (!event.data) {
-    return;
-  }
+    event.respondWith(
+        caches.match(event.request).then(response => {
+            // Return cached response if available
+            if (response) {
+                // Update cache in background
+                fetch(event.request).then(networkResponse => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, networkResponse.clone());
+                        });
+                    }
+                }).catch(() => {
+                    // Network failed, use cached response
+                });
+                return response;
+            }
 
-  const options = {
-    body: event.data.text(),
-    icon: '/Portfolio/01-world-time-zones/data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%23667eea" width="192" height="192"/><text x="50%" y="50%" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central" fill="white" font-family="Arial">🌍</text></svg>',
-    badge: '/Portfolio/01-world-time-zones/data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><circle cx="48" cy="48" r="45" fill="%23667eea"/></svg>'
-  };
+            // Otherwise fetch from network
+            return fetch(event.request).then(networkResponse => {
+                // Don't cache if not a success response
+                if (!networkResponse || networkResponse.status !== 200) {
+                    return networkResponse;
+                }
 
-  event.waitUntil(
-    self.registration.showNotification('World Time Zones', options)
-  );
+                // Cache successful responses
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(event.request, responseToCache);
+                });
+
+                return networkResponse;
+            }).catch(() => {
+                // Network failed and not in cache - return offline page if available
+                return caches.match('/index.html');
+            });
+        })
+    );
 });
+
+// Handle messages from clients
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
+console.log('Service Worker loaded - version 2.1');
