@@ -1,5 +1,6 @@
-// Comprehensive cities database - 250+ cities worldwide
-// Comprehensive cities database - 760+ cities worldwide
+// Comprehensive cities database - 760+ cities worldwide (v2.0)
+// Updated: January 18, 2026 - Includes Sarajevo and 765+ world cities
+// Total unique cities: 766 (with proper timezone mapping)
 const citiesDatabase = {
     // North America
     'abaie mahault': 'America/Guadeloupe',
