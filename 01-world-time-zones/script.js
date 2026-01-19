@@ -889,10 +889,13 @@ let darkMode = false;
 let showWeather = true;
 
 // Update weather display (called less frequently to prevent fluctuations)
-function updateWeather() {
+async function updateWeather() {
+    console.log(`[updateWeather] Called at ${new Date().toLocaleTimeString()}`);
     const cards = document.querySelectorAll('.city-card');
+    console.log(`[updateWeather] Found ${cards.length} city cards`);
     
-    cards.forEach((card) => {
+    // Create array of promises for all cities
+    const weatherPromises = cards.map(async (card) => {
         const cityNameElement = card.querySelector('.city-name');
         if (!cityNameElement) return;
         
@@ -900,80 +903,80 @@ function updateWeather() {
         const city = cities.find(c => c.name === cityName);
         if (!city) return;
         
-        if (showWeather) {
-            // Fetch real weather data asynchronously
-            fetchRealWeather(city.name).then(realWeather => {
-                let weather = getWeatherInfo(city.timezone, city.name);
-                
-                // If we got real API data, use it
-                if (realWeather) {
-                    const tempDisplay = useFahrenheit 
-                        ? `${Math.round((realWeather.temp * 9/5) + 32)}°F`
-                        : `${realWeather.temp}°C`;
-                    
-                    weather = {
-                        ...weather,
-                        temp: tempDisplay,
-                        humidity: realWeather.humidity,
-                        icon: getWeatherIcon(realWeather.weatherCode, realWeather.isDay)
-                    };
-                    
-                    // Cache the real weather data for 5 minutes
-                    const cacheKey = `${city.name}_realtime`;
-                    weatherCache[cacheKey] = {
-                        data: weather,
-                        expiry: Date.now() + (5 * 60 * 1000) // 5 minutes
-                    };
+        console.log(`[updateWeather] Fetching data for ${cityName}...`);
+        
+        // Fetch real weather data
+        const realWeather = await fetchRealWeather(city.name);
+        
+        if (realWeather) {
+            const tempDisplay = useFahrenheit 
+                ? `${Math.round((realWeather.temp * 9/5) + 32)}°F`
+                : `${realWeather.temp}°C`;
+            
+            const weather = {
+                temp: tempDisplay,
+                humidity: realWeather.humidity,
+                icon: getWeatherIcon(realWeather.weatherCode, realWeather.isDay),
+                season: getSeason(city.timezone)
+            };
+            
+            console.log(`✅ ${cityName}: ${tempDisplay}, Humidity: ${realWeather.humidity}%`);
+            
+            // Update temperature display
+            const tempItem = card.querySelector('.weather-temp');
+            if (tempItem) {
+                const span = tempItem.querySelector('span:last-child');
+                if (span) {
+                    span.textContent = weather.temp;
                 }
-                
-                // Update temperature display
-                const tempItem = card.querySelector('.weather-temp');
-                if (tempItem) {
-                    const span = tempItem.querySelector('span:last-child');
-                    if (span) {
-                        span.textContent = weather.temp;
-                    }
+                const iconSpan = tempItem.querySelector('span:first-child');
+                if (iconSpan) {
+                    iconSpan.textContent = weather.icon;
                 }
-                
-                // Update humidity display
-                const humidityItem = card.querySelector('.weather-humidity');
-                if (humidityItem) {
-                    const span = humidityItem.querySelector('span:last-child');
-                    if (span) {
-                        span.textContent = `${weather.humidity}% Humidity`;
-                    }
+            }
+            
+            // Update humidity display
+            const humidityItem = card.querySelector('.weather-humidity');
+            if (humidityItem) {
+                const span = humidityItem.querySelector('span:last-child');
+                if (span) {
+                    span.textContent = `${weather.humidity}% Humidity`;
                 }
-                
-                // Update weather icon
-                const iconItem = card.querySelector('.weather-temp');
-                if (iconItem) {
-                    const iconSpan = iconItem.querySelector('span:first-child');
-                    if (iconSpan) {
-                        iconSpan.textContent = weather.icon;
-                    }
+            }
+            
+            // Update season display
+            const seasonIcons = {
+                'winter': '❄️',
+                'spring': '🌸',
+                'summer': '🌞',
+                'autumn': '🍂'
+            };
+            const seasonItem = card.querySelector('.weather-season');
+            if (seasonItem) {
+                const iconSpan = seasonItem.querySelector('span:first-child');
+                const nameSpan = seasonItem.querySelector('span:last-child');
+                if (iconSpan) {
+                    iconSpan.textContent = seasonIcons[weather.season] || '📅';
                 }
-                
-                // Update season display
-                const seasonIcons = {
-                    'winter': '❄️',
-                    'spring': '🌸',
-                    'summer': '🌞',
-                    'autumn': '🍂'
-                };
-                const seasonItem = card.querySelector('.weather-season');
-                if (seasonItem) {
-                    const iconSpan = seasonItem.querySelector('span:first-child');
-                    const nameSpan = seasonItem.querySelector('span:last-child');
-                    if (iconSpan) {
-                        iconSpan.textContent = seasonIcons[weather.season] || '📅';
-                    }
-                    if (nameSpan) {
-                        nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
-                    }
+                if (nameSpan) {
+                    nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
                 }
-            });
+            }
+            
+            // Cache the weather data
+            const cacheKey = `${city.name}_realtime`;
+            weatherCache[cacheKey] = {
+                data: weather,
+                expiry: Date.now() + (5 * 60 * 1000)
+            };
+        } else {
+            console.warn(`❌ No API data for ${cityName}`);
         }
     });
+    
+    // Wait for all API calls to complete
+    await Promise.all(weatherPromises);
+    console.log(`[updateWeather] All weather updates completed`);
 }
 
 // Initialize the app
