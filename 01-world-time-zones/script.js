@@ -1071,36 +1071,49 @@ function getWeatherInfo(timezone, cityName) {
     // Get base temperature for current season
     const baseTemp = data[season];
     
-    // Get local time for the city in this timezone
-    const date = new Date();
-    const options = {
+    // Get local time for the city in this timezone using a proper date object
+    const now = new Date();
+    const timeStr = now.toLocaleString('en-US', {
         timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
         hour12: false
-    };
+    });
     
-    const timeStr = date.toLocaleString('en-US', options);
-    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    // Parse the formatted string carefully
+    const parts = timeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/);
+    if (!parts) {
+        return {
+            icon: data.icon,
+            temp: useFahrenheit ? '72°F' : '22°C',
+            humidity: 60,
+            season: season
+        };
+    }
     
-    // Daily temperature cycle - warmer during day (10-16h), cooler at night (±5°C from base)
-    const hoursSinceMidnight = hours;
-    const dailyCycle = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 5;
+    const hours = parseInt(parts[4]);
+    const minutes = parseInt(parts[5]);
+    const dayOfMonth = parseInt(parts[2]);
     
-    // Slow variation based on 10-minute intervals (not real-time fluctuation)
-    // This creates realistic weather changes every 10 minutes instead of every second
-    const tenMinuteInterval = Math.floor(minutes / 10);
-    const slowVariation = Math.sin((tenMinuteInterval + hours) * Math.PI / 6) * 2;
+    // Daily temperature cycle - warmer during 12-17h (noon to early evening), cooler at night
+    // Uses cosine for smooth transitions
+    const dailyCycle = Math.cos((hours - 14) * Math.PI / 12) * 5; // ±5°C centered at 14h (2PM)
     
-    // Combine variations - temperature changes throughout the day but not constantly
-    const temp = Math.round((baseTemp + dailyCycle + slowVariation) * 10) / 10;
+    // Stable variation: based on day of month and hour (not seconds or rapid minutes)
+    // This ensures same temperature throughout each hour, changes every hour
+    const stableVariation = Math.sin((dayOfMonth + hours) * Math.PI / 12) * 2; // ±2°C
     
-    // Humidity varies with time of day (lower during day, higher at night)
+    // Combine variations - stable throughout the hour
+    const temp = Math.round((baseTemp + dailyCycle + stableVariation) * 10) / 10;
+    
+    // Humidity: higher at night (22h-6h), lower during day (8h-20h)
     const baseHumidity = data.humidity;
-    const humidityDaily = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 15; // ±15%
-    // Slow humidity variation every 10 minutes
-    const humidityVariation = Math.sin((tenMinuteInterval + hours) * Math.PI / 6) * 5; // ±5%
+    const humidityDaily = Math.cos((hours - 14) * Math.PI / 12) * 12; // ±12%
+    const humidityVariation = Math.sin((dayOfMonth + hours) * Math.PI / 12) * 3; // ±3%
     
     const humidity = Math.max(15, Math.min(100, Math.round(baseHumidity + humidityDaily + humidityVariation)));
     
