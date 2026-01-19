@@ -991,28 +991,38 @@ async function updateWeather() {
 
 // Initialize the app
 function init() {
+    console.log('[init] Starting app initialization...');
     loadSettings();
     loadCitiesFromStorage();
     if (cities.length === 0) {
         cities = [...defaultCities];
     }
+    console.log('[init] Cities loaded:', cities.map(c => c.name).join(', '));
     setupEventListeners();
     renderCities();
     updateTime();
     updateHeaderTime();
     
     // Delay initial weather fetch by 1 second to ensure cards are rendered
-    setTimeout(updateWeather, 1000);
+    console.log('[init] Scheduling first updateWeather in 1 second...');
+    setTimeout(() => {
+        console.log('[init] Calling updateWeather (initial)...');
+        updateWeather();
+    }, 1000);
     
     // Update times every 500ms for smooth real-time updates
     setInterval(updateTime, 500);
     setInterval(updateHeaderTime, 500);
     
     // Update weather every 5 minutes to get fresh data (API is fast and free)
-    setInterval(updateWeather, 5 * 60 * 1000); // 5 minutes instead of 1 hour
+    setInterval(() => {
+        console.log('[init] Calling updateWeather (periodic 5min)...');
+        updateWeather();
+    }, 5 * 60 * 1000); // 5 minutes instead of 1 hour
     
     // Clear weather cache every 5 minutes to ensure fresh data
     setInterval(() => {
+        console.log('[cache] Clearing weather cache...');
         for (const key in weatherCache) {
             delete weatherCache[key];
         }
