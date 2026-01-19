@@ -40,7 +40,59 @@ const cityCoordinates = {
     'zurich': { lat: 47.3769, lon: 8.5472 },
     'seoul': { lat: 37.5665, lon: 126.9780 },
     'delhi': { lat: 28.7041, lon: 77.1025 },
-    'istanbul': { lat: 41.0082, lon: 28.9784 }
+    'istanbul': { lat: 41.0082, lon: 28.9784 },
+    // Eastern Europe & Balkans
+    'sarajevo': { lat: 43.8564, lon: 18.4131 },
+    'banja luka': { lat: 44.7866, lon: 17.1797 },
+    'mostar': { lat: 43.3383, lon: 17.8132 },
+    'tuzla': { lat: 44.5401, lon: 18.6947 },
+    'zenica': { lat: 44.1969, lon: 17.9028 },
+    'trebinje': { lat: 42.7134, lon: 18.3383 },
+    'visegrad': { lat: 43.7864, lon: 19.2844 },
+    'prijedor': { lat: 44.9674, lon: 16.7201 },
+    'prague': { lat: 50.0755, lon: 14.4378 },
+    'brno': { lat: 49.1951, lon: 16.6068 },
+    'budapest': { lat: 47.4979, lon: 19.0402 },
+    'warsaw': { lat: 52.2297, lon: 21.0122 },
+    'krakow': { lat: 50.0647, lon: 19.9450 },
+    'vienna': { lat: 48.2082, lon: 16.3738 },
+    'geneva': { lat: 46.2017, lon: 6.1432 },
+    'dublin': { lat: 53.3498, lon: -6.2603 },
+    'athens': { lat: 37.9838, lon: 23.7275 },
+    'bucharest': { lat: 44.4268, lon: 26.1025 },
+    'sofia': { lat: 42.6977, lon: 23.3219 },
+    'belgrade': { lat: 44.8176, lon: 20.4633 },
+    'zagreb': { lat: 45.8150, lon: 15.9819 },
+    'ljubljana': { lat: 46.0569, lon: 14.5058 },
+    'bratislava': { lat: 48.1486, lon: 17.1077 },
+    // Additional major cities
+    'barcelona': { lat: 41.3851, lon: 2.1734 },
+    'milan': { lat: 45.4642, lon: 9.1900 },
+    'geneva': { lat: 46.2017, lon: 6.1432 },
+    'munich': { lat: 48.1351, lon: 11.5820 },
+    'hamburg': { lat: 53.5511, lon: 9.9937 },
+    'frankfurt': { lat: 50.1109, lon: 8.6821 },
+    'zurich': { lat: 47.3769, lon: 8.5472 },
+    'geneva': { lat: 46.2017, lon: 6.1432 },
+    'brussels': { lat: 50.8503, lon: 4.3517 },
+    'lisbon': { lat: 38.7223, lon: -9.1393 },
+    'athens': { lat: 37.9838, lon: 23.7275 },
+    'bangkok': { lat: 13.7563, lon: 100.5018 },
+    'ho chi minh city': { lat: 10.7769, lon: 106.7009 },
+    'hanoi': { lat: 21.0285, lon: 105.8542 },
+    'kuala lumpur': { lat: 3.1390, lon: 101.6869 },
+    'manila': { lat: 14.5995, lon: 120.9842 },
+    'jakarta': { lat: -6.2088, lon: 106.8456 },
+    'bangkok': { lat: 13.7563, lon: 100.5018 },
+    'mumbai': { lat: 19.0760, lon: 72.8777 },
+    'bangalore': { lat: 12.9716, lon: 77.5946 },
+    'colombo': { lat: 6.9271, lon: 80.7789 },
+    'bangkok': { lat: 13.7563, lon: 100.5018 },
+    'perth': { lat: -31.9505, lon: 115.8605 },
+    'melbourne': { lat: -37.8136, lon: 144.9631 },
+    'auckland': { lat: -37.7870, lon: 174.7865 },
+    'johannesburg': { lat: -26.2023, lon: 28.0436 },
+    'cape town': { lat: -33.9249, lon: 18.4241 }
 };
 
 const citiesDatabase = {
@@ -1153,25 +1205,35 @@ function getSeason(timezone) {
 // Fetch real weather from Open-Meteo API
 async function fetchRealWeather(cityName) {
     const coords = cityCoordinates[cityName.toLowerCase()];
-    if (!coords) return null;
+    
+    if (!coords) {
+        console.warn(`No coordinates for ${cityName}`);
+        return null;
+    }
     
     try {
-        const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`
-        );
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
+        console.log(`[API] Fetching weather for ${cityName}...`);
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.current) {
-            console.log(`${cityName}: ${data.current.temperature_2m}°C, Humidity: ${data.current.relative_humidity_2m}%`);
+            const temp = Math.round(data.current.temperature_2m);
+            const humidity = data.current.relative_humidity_2m;
+            console.log(`✅ ${cityName}: ${temp}°C, Humidity: ${humidity}%`);
             return {
-                temp: Math.round(data.current.temperature_2m),
-                humidity: data.current.relative_humidity_2m,
+                temp: temp,
+                humidity: humidity,
                 weatherCode: data.current.weather_code,
                 isDay: data.current.is_day
             };
+        } else {
+            console.warn(`No current data for ${cityName}`);
+            return null;
         }
     } catch (error) {
-        console.warn(`Weather API error for ${cityName}:`, error);
+        console.error(`❌ Weather API error for ${cityName}:`, error);
     }
     return null;
 }
