@@ -877,8 +877,7 @@ const defaultCities = [
     { name: 'Tokyo', timezone: 'Asia/Tokyo' },
     { name: 'Paris', timezone: 'Europe/Paris' },
     { name: 'Sydney', timezone: 'Australia/Sydney' },
-    { name: 'Dubai', timezone: 'Asia/Dubai' },
-    { name: 'Sarajevo', timezone: 'Europe/Sarajevo' }
+    { name: 'Dubai', timezone: 'Asia/Dubai' }
 ];
 
 let cities = [];
@@ -891,26 +890,16 @@ let showWeather = true;
 
 // Update weather display (called less frequently to prevent fluctuations)
 async function updateWeather() {
-    console.log(`\n========== [updateWeather] Called at ${new Date().toLocaleTimeString()} ==========`);
     const cards = document.querySelectorAll('.city-card');
-    console.log(`[updateWeather] Found ${cards.length} city cards to update`);
     
     // Create array of promises for all cities
     const weatherPromises = cards.map(async (card) => {
         const cityNameElement = card.querySelector('.city-name');
-        if (!cityNameElement) {
-            console.warn('[updateWeather] Could not find city-name element');
-            return;
-        }
+        if (!cityNameElement) return;
         
         const cityName = cityNameElement.textContent.trim();
         const city = cities.find(c => c.name === cityName);
-        if (!city) {
-            console.warn(`[updateWeather] City "${cityName}" not found in cities array`);
-            return;
-        }
-        
-        console.log(`\n[updateWeather] Processing "${cityName}"...`);
+        if (!city) return;
         
         // Fetch real weather data
         const realWeather = await fetchRealWeather(city.name);
@@ -927,16 +916,11 @@ async function updateWeather() {
                 season: getSeason(city.timezone)
             };
             
-            console.log(`✅ ${cityName}: ${tempDisplay}, Humidity: ${realWeather.humidity}%`);
-            
             // Update temperature display
             const tempItem = card.querySelector('.weather-temp');
-            console.log(`[HTML] Looking for .weather-temp for ${cityName}:`, !!tempItem);
             if (tempItem) {
                 const span = tempItem.querySelector('span:last-child');
-                console.log(`[HTML] Found span for ${cityName}:`, span?.textContent);
                 if (span) {
-                    console.log(`[HTML] Updating ${cityName} temp from "${span.textContent}" to "${weather.temp}"`);
                     span.textContent = weather.temp;
                 }
                 const iconSpan = tempItem.querySelector('span:first-child');
@@ -979,54 +963,41 @@ async function updateWeather() {
                 data: weather,
                 expiry: Date.now() + (5 * 60 * 1000)
             };
-        } else {
-            console.warn(`❌ No API data for ${cityName}`);
         }
     });
     
     // Wait for all API calls to complete
     await Promise.all(weatherPromises);
-    console.log(`[updateWeather] All weather updates completed`);
 }
 
 // Initialize the app
 function init() {
-    console.log('[init] Starting app initialization...');
     loadSettings();
     loadCitiesFromStorage();
     if (cities.length === 0) {
         cities = [...defaultCities];
     }
-    console.log('[init] Cities loaded:', cities.map(c => c.name).join(', '));
     setupEventListeners();
     renderCities();
     updateTime();
     updateHeaderTime();
     
     // Delay initial weather fetch by 1 second to ensure cards are rendered
-    console.log('[init] Scheduling first updateWeather in 1 second...');
-    setTimeout(() => {
-        console.log('[init] Calling updateWeather (initial)...');
-        updateWeather();
-    }, 1000);
+    setTimeout(updateWeather, 1000);
     
     // Update times every 500ms for smooth real-time updates
     setInterval(updateTime, 500);
     setInterval(updateHeaderTime, 500);
     
-    // Update weather every 5 minutes to get fresh data (API is fast and free)
-    setInterval(() => {
-        console.log('[init] Calling updateWeather (periodic 5min)...');
-        updateWeather();
-    }, 5 * 60 * 1000); // 5 minutes instead of 1 hour
+    // Update weather every 5 minutes to get fresh data
+    setInterval(updateWeather, 5 * 60 * 1000);
     
     // Clear weather cache every 5 minutes to ensure fresh data
     setInterval(() => {
-        console.log('[cache] Clearing weather cache...');
         for (const key in weatherCache) {
             delete weatherCache[key];
         }
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 5 * 60 * 1000);
     
     // Apply dark mode if enabled
     if (darkMode) {
@@ -1228,41 +1199,26 @@ function getSeason(timezone) {
 // Fetch real weather from Open-Meteo API
 async function fetchRealWeather(cityName) {
     const coords = cityCoordinates[cityName.toLowerCase()];
-    
-    console.log(`[API] fetchRealWeather called for "${cityName}"`);
-    
-    if (!coords) {
-        console.warn(`[API] ❌ No coordinates for "${cityName}" - checking available: ${Object.keys(cityCoordinates).join(', ')}`);
-        return null;
-    }
-    
-    console.log(`[API] ✅ Found coordinates for ${cityName}: lat=${coords.lat}, lon=${coords.lon}`);
+    if (!coords) return null;
     
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
-        console.log(`[API] 🌐 Fetching from URL: ${url}`);
-        
-        const response = await fetch(url);
+        const response = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`
+        );
         const data = await response.json();
         
         if (data.current) {
-            const temp = Math.round(data.current.temperature_2m);
-            const humidity = data.current.relative_humidity_2m;
-            console.log(`[API] ✅ SUCCESS: ${cityName}: ${temp}°C, Humidity: ${humidity}%`);
             return {
-                temp: temp,
-                humidity: humidity,
+                temp: Math.round(data.current.temperature_2m),
+                humidity: data.current.relative_humidity_2m,
                 weatherCode: data.current.weather_code,
                 isDay: data.current.is_day
             };
-        } else {
-            console.warn(`[API] ❌ No current data in response for ${cityName}`);
-            return null;
         }
+        return null;
     } catch (error) {
-        console.error(`[API] ❌ Fetch error for ${cityName}:`, error);
+        return null;
     }
-    return null;
 }
 
 // Convert weather code to icon
