@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - World Time Zones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-result {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #f8fff9;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌍 API Test - Weather Data</h1>
+    
+    <h2>Test 1: Direct API Call</h2>
+    <div id="test1" class="test-result"></div>
+    
+    <h2>Test 2: Sarajevo Coordinates</h2>
+    <div id="test2" class="test-result"></div>
+    
+    <h2>Test 3: HTML Element Finding</h2>
+    <div id="test3" class="test-result"></div>
+    
+    <script>
+        // Sarajevo coordinates
+        const coords = { lat: 43.8564, lon: 18.4131 };
+        
+        // Test 1: Direct API call
+        async function testDirectAPI() {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
+                console.log('🌐 Testing API URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.current) {
+                    const temp = Math.round(data.current.temperature_2m);
+                    const humidity = data.current.relative_humidity_2m;
+                    document.getElementById('test1').innerHTML = `
+                        <strong class="success">✅ API Working!</strong>
+                        <p><strong>Sarajevo Temperature:</strong> ${temp}°C</p>
+                        <p><strong>Humidity:</strong> ${humidity}%</p>
+                        <pre>${JSON.stringify(data.current, null, 2)}</pre>
+                    `;
+                    document.getElementById('test1').classList.add('success');
+                } else {
+                    throw new Error('No current data in response');
+                }
+            } catch (error) {
+                document.getElementById('test1').innerHTML = `
+                    <strong class="error">❌ API Error!</strong>
+                    <p>${error.message}</p>
+                `;
+                document.getElementById('test1').classList.add('error');
+            }
+        }
+        
+        // Test 2: Verify coordinates
+        function testCoordinates() {
+            document.getElementById('test2').innerHTML = `
+                <strong class="success">✅ Coordinates Found</strong>
+                <p><strong>City:</strong> Sarajevo</p>
+                <p><strong>Latitude:</strong> ${coords.lat}</p>
+                <p><strong>Longitude:</strong> ${coords.lon}</p>
+            `;
+            document.getElementById('test2').classList.add('success');
+        }
+        
+        // Test 3: HTML elements
+        function testHTMLElements() {
+            // Create test HTML structure
+            const testHTML = `
+                <div class="city-card">
+                    <div class="city-name">Sarajevo</div>
+                    <div class="weather-item weather-temp">
+                        <span class="weather-icon">🌡️</span>
+                        <span>20°C</span>
+                    </div>
+                    <div class="weather-item weather-humidity">
+                        <span class="weather-icon">💧</span>
+                        <span>75% Humidity</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('test3').innerHTML = testHTML;
+            
+            // Try to find elements
+            const card = document.querySelector('.city-card');
+            const tempItem = document.querySelector('.weather-temp');
+            const span = tempItem?.querySelector('span:last-child');
+            
+            setTimeout(() => {
+                document.getElementById('test3').innerHTML += `
+                    <hr>
+                    <strong class="success">✅ HTML Elements Found</strong>
+                    <p><strong>.city-card found:</strong> ${!!card}</p>
+                    <p><strong>.weather-temp found:</strong> ${!!tempItem}</p>
+                    <p><strong>span:last-child found:</strong> ${!!span}</p>
+                    <p><strong>Current text:</strong> "${span?.textContent}"</p>
+                    <p><strong>Can update to:</strong> "-1°C" (testing...)</p>
+                `;
+                if (span) {
+                    span.textContent = '-1°C';
+                    document.getElementById('test3').innerHTML += `
+                        <p style="color: green;"><strong>Updated text:</strong> "${span.textContent}"</p>
+                    `;
+                }
+            }, 500);
+        }
+        
+        // Run tests
+        testCoordinates();
+        testDirectAPI();
+        testHTMLElements();
+    </script>
+</body>
+</html>

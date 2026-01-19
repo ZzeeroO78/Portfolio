@@ -1338,6 +1338,7 @@ function getWeatherInfo(timezone, cityName) {
         'seattle': { icon: icons.cloudy, humidity: 70 },
         'miami': { icon: icons.sunny, humidity: 75 },
         'boston': { icon: icons.cloudy, humidity: 68 },
+        'sarajevo': { icon: isDaytime ? icons.cloudy : icons.night, humidity: 88 },
         'san francisco': { icon: icons.cloudy, humidity: 65 },
         'berlin': { icon: icons.cloudy, humidity: 70 },
         'madrid': { icon: icons.sunny, humidity: 55 },
