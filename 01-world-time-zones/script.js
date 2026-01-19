@@ -925,9 +925,12 @@ async function updateWeather() {
             
             // Update temperature display
             const tempItem = card.querySelector('.weather-temp');
+            console.log(`[HTML] Looking for .weather-temp for ${cityName}:`, !!tempItem);
             if (tempItem) {
                 const span = tempItem.querySelector('span:last-child');
+                console.log(`[HTML] Found span for ${cityName}:`, span?.textContent);
                 if (span) {
+                    console.log(`[HTML] Updating ${cityName} temp from "${span.textContent}" to "${weather.temp}"`);
                     span.textContent = weather.temp;
                 }
                 const iconSpan = tempItem.querySelector('span:first-child');
