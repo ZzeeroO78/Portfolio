@@ -1084,22 +1084,25 @@ function getWeatherInfo(timezone, cityName) {
     const timeStr = date.toLocaleString('en-US', options);
     const [hours, minutes, seconds] = timeStr.split(':').map(Number);
     
-    // Daily temperature cycle - warmer during day (10-16h), cooler at night
+    // Daily temperature cycle - warmer during day (10-16h), cooler at night (±5°C from base)
     const hoursSinceMidnight = hours;
     const dailyCycle = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 5;
     
-    // Real-time minute/second variation (±1°C)
-    const minSecVarr = Math.sin((minutes * 60 + seconds) * Math.PI / 1800) * 1;
+    // Slow variation based on 10-minute intervals (not real-time fluctuation)
+    // This creates realistic weather changes every 10 minutes instead of every second
+    const tenMinuteInterval = Math.floor(minutes / 10);
+    const slowVariation = Math.sin((tenMinuteInterval + hours) * Math.PI / 6) * 2;
     
-    // Combine all variations
-    const temp = Math.round((baseTemp + dailyCycle + minSecVarr) * 10) / 10;
+    // Combine variations - temperature changes throughout the day but not constantly
+    const temp = Math.round((baseTemp + dailyCycle + slowVariation) * 10) / 10;
     
-    // Humidity varies with time of day and real-time
+    // Humidity varies with time of day (lower during day, higher at night)
     const baseHumidity = data.humidity;
-    const humidityDaily = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 15; // Humidity lower during day
-    const humidityRealTime = Math.sin((minutes * 60 + seconds) * Math.PI / 1800) * 5;
+    const humidityDaily = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 15; // ±15%
+    // Slow humidity variation every 10 minutes
+    const humidityVariation = Math.sin((tenMinuteInterval + hours) * Math.PI / 6) * 5; // ±5%
     
-    const humidity = Math.max(15, Math.min(100, Math.round(baseHumidity + humidityDaily + humidityRealTime)));
+    const humidity = Math.max(15, Math.min(100, Math.round(baseHumidity + humidityDaily + humidityVariation)));
     
     const tempF = Math.round((temp * 9/5) + 32);
     const tempDisplay = useFahrenheit ? `${tempF}°F` : `${temp}°C`;
