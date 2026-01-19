@@ -1589,7 +1589,19 @@ function saveCitiesToStorage() {
 function loadCitiesFromStorage() {
     const stored = localStorage.getItem('worldTimeCities');
     if (stored) {
-        cities = JSON.parse(stored);
+        try {
+            const parsed = JSON.parse(stored);
+            // Validate that we have cities with proper structure
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name && parsed[0].timezone) {
+                cities = parsed;
+            } else {
+                // If stored data is invalid or empty, use defaults
+                cities = [];
+            }
+        } catch (e) {
+            // If parsing fails, start with empty array
+            cities = [];
+        }
     }
 }
 
