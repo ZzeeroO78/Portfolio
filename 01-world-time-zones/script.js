@@ -798,6 +798,61 @@ let useFahrenheit = false;
 let darkMode = false;
 let showWeather = true;
 
+// Update weather display (called less frequently to prevent fluctuations)
+function updateWeather() {
+    const cards = document.querySelectorAll('.city-card');
+    
+    cards.forEach((card) => {
+        const cityNameElement = card.querySelector('.city-name');
+        if (!cityNameElement) return;
+        
+        const cityName = cityNameElement.textContent.trim();
+        const city = cities.find(c => c.name === cityName);
+        if (!city) return;
+        
+        if (showWeather) {
+            const weather = getWeatherInfo(city.timezone, city.name);
+            
+            // Update temperature display
+            const tempItem = card.querySelector('.weather-temp');
+            if (tempItem) {
+                const span = tempItem.querySelector('span:last-child');
+                if (span) {
+                    span.textContent = weather.temp;
+                }
+            }
+            
+            // Update humidity display
+            const humidityItem = card.querySelector('.weather-humidity');
+            if (humidityItem) {
+                const span = humidityItem.querySelector('span:last-child');
+                if (span) {
+                    span.textContent = `${weather.humidity}% Humidity`;
+                }
+            }
+            
+            // Update season display
+            const seasonIcons = {
+                'winter': '❄️',
+                'spring': '🌸',
+                'summer': '🌞',
+                'autumn': '🍂'
+            };
+            const seasonItem = card.querySelector('.weather-season');
+            if (seasonItem) {
+                const iconSpan = seasonItem.querySelector('span:first-child');
+                const nameSpan = seasonItem.querySelector('span:last-child');
+                if (iconSpan) {
+                    iconSpan.textContent = seasonIcons[weather.season] || '📅';
+                }
+                if (nameSpan) {
+                    nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
+                }
+            }
+        }
+    });
+}
+
 // Initialize the app
 function init() {
     loadSettings();
@@ -809,10 +864,14 @@ function init() {
     renderCities();
     updateTime();
     updateHeaderTime();
+    updateWeather();
     
     // Update times every 500ms for smooth real-time updates
     setInterval(updateTime, 500);
     setInterval(updateHeaderTime, 500);
+    
+    // Update weather every hour (3600000ms) to prevent temperature fluctuations
+    setInterval(updateWeather, 3600000);
     
     // Clear weather cache every hour to allow temperature changes
     setInterval(() => {
@@ -861,6 +920,7 @@ function setupEventListeners() {
         showWeather = e.target.checked;
         saveSettings();
         renderCities();
+        updateWeather();
     });
     
     document.getElementById('showSeconds').addEventListener('change', (e) => {
@@ -1261,54 +1321,13 @@ function updateTime() {
             periodElement.textContent = periodText;
             periodElement.className = `time-period ${dayTime ? 'day' : 'night'}`;
         }
-        
-        // Update weather (temperature and humidity) in real-time
-        if (showWeather) {
-            const weather = getWeatherInfo(city.timezone, city.name);
-            
-            // Update temperature display
-            const tempItem = card.querySelector('.weather-temp');
-            if (tempItem) {
-                const span = tempItem.querySelector('span:last-child');
-                if (span) {
-                    span.textContent = weather.temp;
-                }
-            }
-            
-            // Update humidity display
-            const humidityItem = card.querySelector('.weather-humidity');
-            if (humidityItem) {
-                const span = humidityItem.querySelector('span:last-child');
-                if (span) {
-                    span.textContent = `${weather.humidity}% Humidity`;
-                }
-            }
-            
-            // Update season display
-            const seasonIcons = {
-                'winter': '❄️',
-                'spring': '🌸',
-                'summer': '🌞',
-                'autumn': '🍂'
-            };
-            const seasonItem = card.querySelector('.weather-season');
-            if (seasonItem) {
-                const iconSpan = seasonItem.querySelector('span:first-child');
-                const nameSpan = seasonItem.querySelector('span:last-child');
-                if (iconSpan) {
-                    iconSpan.textContent = seasonIcons[weather.season] || '📅';
-                }
-                if (nameSpan) {
-                    nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
-                }
-            }
-        }
     });
 }
 
 // Filter cities
 function filterCities() {
     renderCities();
+    updateWeather();
 }
 
 // Toggle sort
@@ -1318,6 +1337,7 @@ function toggleSort() {
         ? '📍 Sort by Name' 
         : '📊 Sort by Time';
     renderCities();
+    updateWeather();
 }
 
 // Toggle time format
@@ -1413,6 +1433,7 @@ function addCity() {
         cities.push({ name: displayName, timezone: timezone });
         saveCitiesToStorage();
         renderCities();
+        updateWeather();
         input.value = '';
         document.getElementById('addCityModal').classList.remove('show');
     } else {
@@ -1425,6 +1446,7 @@ function removeCity(cityName) {
     cities = cities.filter(city => city.name !== cityName);
     saveCitiesToStorage();
     renderCities();
+    updateWeather();
 }
 
 // Reset to default cities
@@ -1433,6 +1455,7 @@ function resetToDefault() {
         cities = [...defaultCities];
         saveCitiesToStorage();
         renderCities();
+        updateWeather();
     }
 }
 
