@@ -1,0 +1,15 @@
+PATCH Plan:
+============
+
+1. Validacija defaultCities - Uvek učitaj ako je cities prazan
+2. Render cities sa "Loading..." za temperaturu - NE čekaj API
+3. updateWeather se poziva ČIM se kartice rendiraju
+4. fetchRealWeather vraća PRAVE podatke iz API
+5. Test API connectivity pre nego što se prikaže stranica
+
+KEY FIXES:
+==========
+- renderCities PRVO prikazuje kartice sa "Loading..."
+- Nakon renderiranja, updateWeather se poziva da učita prave podatke
+- fetchRealWeather ima retry logiku i timeout
+- getWeatherInfo(fallback) se koristi samo ako API vraća null ili timeout
