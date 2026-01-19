@@ -947,51 +947,6 @@ async function updateWeather() {
     
     await Promise.all(weatherPromises);
 }
-
-            }
-            
-            // Update humidity display
-            const humidityItem = card.querySelector('.weather-humidity');
-            if (humidityItem) {
-                const span = humidityItem.querySelector('span:last-child');
-                if (span) {
-                    span.textContent = `${weather.humidity}% Humidity`;
-                }
-            }
-            
-            // Update season display
-            const seasonIcons = {
-                'winter': '❄️',
-                'spring': '🌸',
-                'summer': '🌞',
-                'autumn': '🍂'
-            };
-            const seasonItem = card.querySelector('.weather-season');
-            if (seasonItem) {
-                const iconSpan = seasonItem.querySelector('span:first-child');
-                const nameSpan = seasonItem.querySelector('span:last-child');
-                if (iconSpan) {
-                    iconSpan.textContent = seasonIcons[weather.season] || '📅';
-                }
-                if (nameSpan) {
-                    nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
-                }
-            }
-            
-            // Cache the weather data
-            const cacheKey = `${city.name}_realtime`;
-            weatherCache[cacheKey] = {
-                data: weather,
-                expiry: Date.now() + (5 * 60 * 1000)
-            };
-        }
-    });
-    
-    // Wait for all API calls to complete
-    await Promise.all(weatherPromises);
-}
-
-// Initialize the app
 function init() {
     loadSettings();
     loadCitiesFromStorage();
