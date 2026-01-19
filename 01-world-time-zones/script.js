@@ -805,8 +805,10 @@ function init() {
     renderCities();
     updateTime();
     updateHeaderTime();
-    setInterval(updateTime, 1000);
-    setInterval(updateHeaderTime, 1000);
+    
+    // Update times every 500ms for smooth real-time updates
+    setInterval(updateTime, 500);
+    setInterval(updateHeaderTime, 500);
     
     // Apply dark mode if enabled
     if (darkMode) {
@@ -881,33 +883,46 @@ function getTimeForCity(timezone) {
     try {
         const date = new Date();
         
-        // Format the time for the specific timezone
-        const formatter = new Intl.DateTimeFormat('en-US', {
+        // Use toLocaleString for reliable timezone conversion
+        const options = {
             timeZone: timezone,
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             hour12: !use24HourFormat
-        });
+        };
         
-        const timeParts = formatter.formatToParts(date);
-        let hours = '', minutes = '', seconds = '', period = '';
+        let timeString = date.toLocaleString('en-US', options);
         
-        for (const part of timeParts) {
-            if (part.type === 'hour') hours = part.value;
-            if (part.type === 'minute') minutes = part.value;
-            if (part.type === 'second') seconds = part.value;
-            if (part.type === 'dayPeriod') period = part.value;
-        }
-        
+        // If we don't want seconds, remove them
         if (!showSeconds) {
-            return `${hours}:${minutes}${period ? ' ' + period : ''}`;
-        } else {
-            return `${hours}:${minutes}:${seconds}${period ? ' ' + period : ''}`;
+            // Remove seconds and AM/PM
+            const parts = timeString.split(':');
+            if (parts.length >= 2) {
+                timeString = parts[0] + ':' + parts[1];
+                
+                // Add back AM/PM if in 12-hour format
+                if (!use24HourFormat) {
+                    const timeWithPeriod = date.toLocaleString('en-US', {
+                        timeZone: timezone,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    
+                    // Extract AM/PM from the formatted string
+                    const match = timeWithPeriod.match(/\s(AM|PM)/);
+                    if (match) {
+                        timeString += ' ' + match[1];
+                    }
+                }
+            }
         }
+        
+        return timeString;
     } catch (error) {
-        // Fallback if timezone is invalid
-        return 'Invalid TZ';
+        console.error('Timezone error for ' + timezone + ':', error);
+        return 'N/A';
     }
 }
 
@@ -1081,39 +1096,35 @@ function renderCities() {
 
 // Update time display
 function updateTime() {
+    // Update all city cards with current time
     const cards = document.querySelectorAll('.city-card');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
-    let filteredCities = cities.filter(city => 
-        city.name.toLowerCase().includes(searchTerm)
-    );
-
-    let sortedCities = [...filteredCities];
-    if (sortMode === 'time') {
-        sortedCities.sort((a, b) => {
-            const timeA = getTimeForCity(a.timezone);
-            const timeB = getTimeForCity(b.timezone);
-            return timeA.localeCompare(timeB);
-        });
-    }
-
-    cards.forEach((card, index) => {
-        const city = sortedCities[index];
-        if (city) {
-            const timeElement = card.querySelector('.city-time');
-            const periodElement = card.querySelector('.time-period');
-            
+    cards.forEach((card) => {
+        // Get city name from the card header
+        const cityNameElement = card.querySelector('.city-name');
+        if (!cityNameElement) return;
+        
+        const cityName = cityNameElement.textContent.trim();
+        
+        // Find the corresponding city in our cities array
+        const city = cities.find(c => c.name === cityName);
+        if (!city) return;
+        
+        // Update time
+        const timeElement = card.querySelector('.city-time');
+        if (timeElement) {
             timeElement.textContent = getTimeForCity(city.timezone);
+        }
+        
+        // Update day/night indicator
+        const periodElement = card.querySelector('.time-period');
+        if (periodElement) {
             const dayTime = isDayTime(city.timezone);
             const periodText = dayTime ? '☀️ Day' : '🌙 Night';
             periodElement.textContent = periodText;
             periodElement.className = `time-period ${dayTime ? 'day' : 'night'}`;
         }
     });
-    
-    // Update last update time
-    const now = new Date();
-    document.getElementById('updateTime').textContent = now.toLocaleTimeString('en-US', { hour12: false });
 }
 
 // Filter cities
@@ -1138,6 +1149,7 @@ function toggleTimeFormat() {
         : '🕐 12H';
     saveSettings();
     updateTime();
+    updateHeaderTime();
 }
 
 // Toggle dark mode
