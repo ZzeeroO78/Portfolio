@@ -891,20 +891,26 @@ let showWeather = true;
 
 // Update weather display (called less frequently to prevent fluctuations)
 async function updateWeather() {
-    console.log(`[updateWeather] Called at ${new Date().toLocaleTimeString()}`);
+    console.log(`\n========== [updateWeather] Called at ${new Date().toLocaleTimeString()} ==========`);
     const cards = document.querySelectorAll('.city-card');
-    console.log(`[updateWeather] Found ${cards.length} city cards`);
+    console.log(`[updateWeather] Found ${cards.length} city cards to update`);
     
     // Create array of promises for all cities
     const weatherPromises = cards.map(async (card) => {
         const cityNameElement = card.querySelector('.city-name');
-        if (!cityNameElement) return;
+        if (!cityNameElement) {
+            console.warn('[updateWeather] Could not find city-name element');
+            return;
+        }
         
         const cityName = cityNameElement.textContent.trim();
         const city = cities.find(c => c.name === cityName);
-        if (!city) return;
+        if (!city) {
+            console.warn(`[updateWeather] City "${cityName}" not found in cities array`);
+            return;
+        }
         
-        console.log(`[updateWeather] Fetching data for ${cityName}...`);
+        console.log(`\n[updateWeather] Processing "${cityName}"...`);
         
         // Fetch real weather data
         const realWeather = await fetchRealWeather(city.name);
@@ -1213,14 +1219,18 @@ function getSeason(timezone) {
 async function fetchRealWeather(cityName) {
     const coords = cityCoordinates[cityName.toLowerCase()];
     
+    console.log(`[API] fetchRealWeather called for "${cityName}"`);
+    
     if (!coords) {
-        console.warn(`No coordinates for ${cityName}`);
+        console.warn(`[API] ❌ No coordinates for "${cityName}" - checking available: ${Object.keys(cityCoordinates).join(', ')}`);
         return null;
     }
     
+    console.log(`[API] ✅ Found coordinates for ${cityName}: lat=${coords.lat}, lon=${coords.lon}`);
+    
     try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
-        console.log(`[API] Fetching weather for ${cityName}...`);
+        console.log(`[API] 🌐 Fetching from URL: ${url}`);
         
         const response = await fetch(url);
         const data = await response.json();
@@ -1228,7 +1238,7 @@ async function fetchRealWeather(cityName) {
         if (data.current) {
             const temp = Math.round(data.current.temperature_2m);
             const humidity = data.current.relative_humidity_2m;
-            console.log(`✅ ${cityName}: ${temp}°C, Humidity: ${humidity}%`);
+            console.log(`[API] ✅ SUCCESS: ${cityName}: ${temp}°C, Humidity: ${humidity}%`);
             return {
                 temp: temp,
                 humidity: humidity,
@@ -1236,11 +1246,11 @@ async function fetchRealWeather(cityName) {
                 isDay: data.current.is_day
             };
         } else {
-            console.warn(`No current data for ${cityName}`);
+            console.warn(`[API] ❌ No current data in response for ${cityName}`);
             return null;
         }
     } catch (error) {
-        console.error(`❌ Weather API error for ${cityName}:`, error);
+        console.error(`[API] ❌ Fetch error for ${cityName}:`, error);
     }
     return null;
 }
