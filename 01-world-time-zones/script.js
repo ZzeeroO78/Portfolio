@@ -977,8 +977,38 @@ function isDayTime(timezone) {
 }
 
 // Get weather icon and info (simulated)
+// Get current season (Northern/Southern hemisphere adjusted)
+function getSeason(timezone) {
+    const now = new Date();
+    const month = now.getMonth();
+    
+    // Determine hemisphere from timezone
+    const southernHemisphere = timezone.includes('Australia') || 
+                                timezone.includes('Pacific') || 
+                                (timezone.includes('America/Argentina') || 
+                                 timezone.includes('America/Sao_Paulo'));
+    
+    let season;
+    if (southernHemisphere) {
+        // Southern hemisphere seasons are reversed
+        if (month >= 11 || month <= 1) season = 'summer'; // Dec-Feb
+        else if (month >= 2 && month <= 4) season = 'autumn'; // Mar-May
+        else if (month >= 5 && month <= 7) season = 'winter'; // Jun-Aug
+        else season = 'spring'; // Sep-Nov
+    } else {
+        // Northern hemisphere
+        if (month >= 11 || month <= 1) season = 'winter'; // Dec-Feb
+        else if (month >= 2 && month <= 4) season = 'spring'; // Mar-May
+        else if (month >= 5 && month <= 7) season = 'summer'; // Jun-Aug
+        else season = 'autumn'; // Sep-Nov
+    }
+    
+    return season;
+}
+
 function getWeatherInfo(timezone, cityName) {
     const isDaytime = isDayTime(timezone);
+    const season = getSeason(timezone);
     const icons = {
         sunny: '☀️',
         cloudy: '☁️',
@@ -988,65 +1018,88 @@ function getWeatherInfo(timezone, cityName) {
         snow: '❄️'
     };
     
-    // Base weather data for cities
+    // Base weather data with seasonal considerations
     const weatherData = {
-        'london': { icon: icons.cloudy, baseTemp: 12, baseHumidity: 75 },
-        'new york': { icon: icons.cloudy, baseTemp: 15, baseHumidity: 65 },
-        'tokyo': { icon: icons.sunny, baseTemp: 18, baseHumidity: 60 },
-        'paris': { icon: icons.rainy, baseTemp: 14, baseHumidity: 70 },
-        'sydney': { icon: icons.sunny, baseTemp: 28, baseHumidity: 55 },
-        'dubai': { icon: icons.sunny, baseTemp: 35, baseHumidity: 30 },
-        'singapore': { icon: icons.rainy, baseTemp: 32, baseHumidity: 80 },
-        'hong kong': { icon: icons.cloudy, baseTemp: 25, baseHumidity: 75 },
-        'los angeles': { icon: icons.sunny, baseTemp: 22, baseHumidity: 45 },
-        'toronto': { icon: icons.cloudy, baseTemp: 10, baseHumidity: 70 },
-        'moscow': { icon: isDaytime ? icons.cloudy : icons.night, baseTemp: -5, baseHumidity: 80 },
-        'bangkok': { icon: icons.rainy, baseTemp: 30, baseHumidity: 85 },
-        'mexico city': { icon: icons.sunny, baseTemp: 20, baseHumidity: 50 },
-        'sao paulo': { icon: icons.rainy, baseTemp: 25, baseHumidity: 75 },
-        'auckland': { icon: icons.cloudy, baseTemp: 18, baseHumidity: 65 },
-        'cairo': { icon: icons.sunny, baseTemp: 30, baseHumidity: 25 },
-        'lagos': { icon: icons.rainy, baseTemp: 28, baseHumidity: 70 },
-        'buenos aires': { icon: icons.cloudy, baseTemp: 22, baseHumidity: 60 },
-        'lima': { icon: icons.cloudy, baseTemp: 20, baseHumidity: 55 },
-        'vancouver': { icon: icons.cloudy, baseTemp: 8, baseHumidity: 75 },
-        'chicago': { icon: icons.cloudy, baseTemp: 12, baseHumidity: 65 },
-        'denver': { icon: icons.sunny, baseTemp: 15, baseHumidity: 40 },
-        'seattle': { icon: icons.cloudy, baseTemp: 10, baseHumidity: 70 },
-        'miami': { icon: icons.sunny, baseTemp: 26, baseHumidity: 75 },
-        'boston': { icon: icons.cloudy, baseTemp: 10, baseHumidity: 68 },
-        'san francisco': { icon: icons.cloudy, baseTemp: 14, baseHumidity: 65 },
-        'berlin': { icon: icons.cloudy, baseTemp: 11, baseHumidity: 70 },
-        'madrid': { icon: icons.sunny, baseTemp: 16, baseHumidity: 55 },
-        'rome': { icon: icons.sunny, baseTemp: 17, baseHumidity: 60 },
-        'amsterdam': { icon: icons.cloudy, baseTemp: 10, baseHumidity: 72 },
-        'zurich': { icon: icons.cloudy, baseTemp: 9, baseHumidity: 68 },
-        'seoul': { icon: icons.cloudy, baseTemp: 12, baseHumidity: 58 },
-        'delhi': { icon: icons.sunny, baseTemp: 28, baseHumidity: 45 },
-        'istanbul': { icon: icons.cloudy, baseTemp: 14, baseHumidity: 65 }
+        'london': { icon: icons.cloudy, winter: 6, spring: 10, summer: 17, autumn: 12, humidity: 75 },
+        'new york': { icon: icons.cloudy, winter: -2, spring: 12, summer: 24, autumn: 15, humidity: 65 },
+        'tokyo': { icon: icons.sunny, winter: 8, spring: 15, summer: 26, autumn: 19, humidity: 60 },
+        'paris': { icon: icons.rainy, winter: 5, spring: 11, summer: 19, autumn: 13, humidity: 70 },
+        'sydney': { icon: icons.sunny, winter: 17, spring: 22, summer: 27, autumn: 20, humidity: 55 },
+        'dubai': { icon: icons.sunny, winter: 20, spring: 30, summer: 42, autumn: 32, humidity: 30 },
+        'singapore': { icon: icons.rainy, winter: 26, spring: 27, summer: 29, autumn: 28, humidity: 80 },
+        'hong kong': { icon: icons.cloudy, winter: 15, spring: 20, summer: 30, autumn: 24, humidity: 75 },
+        'los angeles': { icon: icons.sunny, winter: 14, spring: 18, summer: 26, autumn: 22, humidity: 45 },
+        'toronto': { icon: icons.cloudy, winter: -8, spring: 8, summer: 22, autumn: 12, humidity: 70 },
+        'moscow': { icon: isDaytime ? icons.cloudy : icons.night, winter: -7, spring: 5, summer: 20, autumn: 8, humidity: 80 },
+        'bangkok': { icon: icons.rainy, winter: 26, spring: 32, summer: 31, autumn: 28, humidity: 85 },
+        'mexico city': { icon: icons.sunny, winter: 18, spring: 21, summer: 22, autumn: 20, humidity: 50 },
+        'sao paulo': { icon: icons.rainy, winter: 20, spring: 24, summer: 28, autumn: 23, humidity: 75 },
+        'auckland': { icon: icons.cloudy, winter: 14, spring: 18, summer: 23, autumn: 19, humidity: 65 },
+        'cairo': { icon: icons.sunny, winter: 16, spring: 25, summer: 35, autumn: 28, humidity: 25 },
+        'lagos': { icon: icons.rainy, winter: 26, spring: 28, summer: 25, autumn: 27, humidity: 70 },
+        'buenos aires': { icon: icons.cloudy, winter: 12, spring: 17, summer: 26, autumn: 19, humidity: 60 },
+        'lima': { icon: icons.cloudy, winter: 20, spring: 22, summer: 24, autumn: 22, humidity: 55 },
+        'vancouver': { icon: icons.cloudy, winter: 3, spring: 9, summer: 19, autumn: 12, humidity: 75 },
+        'chicago': { icon: icons.cloudy, winter: -5, spring: 10, summer: 23, autumn: 13, humidity: 65 },
+        'denver': { icon: icons.sunny, winter: 4, spring: 12, summer: 26, autumn: 15, humidity: 40 },
+        'seattle': { icon: icons.cloudy, winter: 5, spring: 10, summer: 22, autumn: 14, humidity: 70 },
+        'miami': { icon: icons.sunny, winter: 20, spring: 23, summer: 29, autumn: 26, humidity: 75 },
+        'boston': { icon: icons.cloudy, winter: -3, spring: 9, summer: 23, autumn: 12, humidity: 68 },
+        'san francisco': { icon: icons.cloudy, winter: 10, spring: 12, summer: 18, autumn: 16, humidity: 65 },
+        'berlin': { icon: icons.cloudy, winter: 2, spring: 9, summer: 20, autumn: 12, humidity: 70 },
+        'madrid': { icon: icons.sunny, winter: 6, spring: 14, summer: 27, autumn: 18, humidity: 55 },
+        'rome': { icon: icons.sunny, winter: 8, spring: 15, summer: 26, autumn: 19, humidity: 60 },
+        'amsterdam': { icon: icons.cloudy, winter: 3, spring: 10, summer: 20, autumn: 13, humidity: 72 },
+        'zurich': { icon: icons.cloudy, winter: 1, spring: 10, summer: 22, autumn: 13, humidity: 68 },
+        'seoul': { icon: icons.cloudy, winter: -5, spring: 12, summer: 26, autumn: 16, humidity: 58 },
+        'delhi': { icon: icons.sunny, winter: 15, spring: 28, summer: 38, autumn: 28, humidity: 45 },
+        'istanbul': { icon: icons.cloudy, winter: 7, spring: 14, summer: 26, autumn: 19, humidity: 65 }
     };
     
     let data = weatherData[cityName.toLowerCase()];
     if (!data) {
         data = { 
             icon: isDaytime ? icons.sunny : icons.night, 
-            baseTemp: Math.floor(Math.random() * 25) + 10,
-            baseHumidity: Math.floor(Math.random() * 40) + 50 
+            winter: Math.floor(Math.random() * 15) + 5,
+            spring: Math.floor(Math.random() * 15) + 15,
+            summer: Math.floor(Math.random() * 15) + 25,
+            autumn: Math.floor(Math.random() * 15) + 15,
+            humidity: Math.floor(Math.random() * 40) + 50 
         };
     }
     
-    // Add realistic variations (simulating weather changes throughout the day)
-    const now = new Date();
-    const seconds = now.getSeconds();
-    const minutes = now.getMinutes();
+    // Get base temperature for current season
+    const baseTemp = data[season];
     
-    // Temperature varies slightly every minute (±2°C)
-    const tempVariation = Math.sin((minutes + seconds / 60) * Math.PI / 30) * 2;
-    const temp = Math.round((data.baseTemp + tempVariation) * 10) / 10;
+    // Get local time for the city in this timezone
+    const date = new Date();
+    const options = {
+        timeZone: timezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
     
-    // Humidity varies every 30 seconds (±3%)
-    const humidityVariation = Math.sin((seconds) * Math.PI / 30) * 3;
-    const humidity = Math.max(20, Math.min(100, Math.round(data.baseHumidity + humidityVariation)));
+    const timeStr = date.toLocaleString('en-US', options);
+    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    
+    // Daily temperature cycle - warmer during day (10-16h), cooler at night
+    const hoursSinceMidnight = hours;
+    const dailyCycle = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 5;
+    
+    // Real-time minute/second variation (±1°C)
+    const minSecVarr = Math.sin((minutes * 60 + seconds) * Math.PI / 1800) * 1;
+    
+    // Combine all variations
+    const temp = Math.round((baseTemp + dailyCycle + minSecVarr) * 10) / 10;
+    
+    // Humidity varies with time of day and real-time
+    const baseHumidity = data.humidity;
+    const humidityDaily = Math.sin((hoursSinceMidnight - 6) * Math.PI / 12) * 15; // Humidity lower during day
+    const humidityRealTime = Math.sin((minutes * 60 + seconds) * Math.PI / 1800) * 5;
+    
+    const humidity = Math.max(15, Math.min(100, Math.round(baseHumidity + humidityDaily + humidityRealTime)));
     
     const tempF = Math.round((temp * 9/5) + 32);
     const tempDisplay = useFahrenheit ? `${tempF}°F` : `${temp}°C`;
@@ -1054,7 +1107,8 @@ function getWeatherInfo(timezone, cityName) {
     return {
         icon: data.icon,
         temp: tempDisplay,
-        humidity: humidity
+        humidity: humidity,
+        season: season
     };
 }
 
@@ -1099,6 +1153,14 @@ function renderCities() {
         let weatherHTML = '';
         if (showWeather) {
             const weather = getWeatherInfo(city.timezone, city.name);
+            const seasonIcons = {
+                'winter': '❄️',
+                'spring': '🌸',
+                'summer': '🌞',
+                'autumn': '🍂'
+            };
+            const seasonIcon = seasonIcons[weather.season] || '📅';
+            
             weatherHTML = `
                 <div class="city-weather" data-city-name="${city.name}">
                     <div class="weather-item weather-temp" data-city="${city.name}">
@@ -1108,6 +1170,10 @@ function renderCities() {
                     <div class="weather-item weather-humidity" data-city="${city.name}">
                         <span class="weather-icon">💧</span>
                         <span>${weather.humidity}% Humidity</span>
+                    </div>
+                    <div class="weather-item weather-season" data-city="${city.name}">
+                        <span class="weather-icon">${seasonIcon}</span>
+                        <span>${weather.season.charAt(0).toUpperCase() + weather.season.slice(1)}</span>
                     </div>
                 </div>
             `;
@@ -1179,6 +1245,25 @@ function updateTime() {
                 const span = humidityItem.querySelector('span:last-child');
                 if (span) {
                     span.textContent = `${weather.humidity}% Humidity`;
+                }
+            }
+            
+            // Update season display
+            const seasonIcons = {
+                'winter': '❄️',
+                'spring': '🌸',
+                'summer': '🌞',
+                'autumn': '🍂'
+            };
+            const seasonItem = card.querySelector('.weather-season');
+            if (seasonItem) {
+                const iconSpan = seasonItem.querySelector('span:first-child');
+                const nameSpan = seasonItem.querySelector('span:last-child');
+                if (iconSpan) {
+                    iconSpan.textContent = seasonIcons[weather.season] || '📅';
+                }
+                if (nameSpan) {
+                    nameSpan.textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
                 }
             }
         }
