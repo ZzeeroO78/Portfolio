@@ -935,21 +935,23 @@ function init() {
     renderCities();
     updateTime();
     updateHeaderTime();
-    updateWeather();
+    
+    // Delay initial weather fetch by 1 second to ensure cards are rendered
+    setTimeout(updateWeather, 1000);
     
     // Update times every 500ms for smooth real-time updates
     setInterval(updateTime, 500);
     setInterval(updateHeaderTime, 500);
     
-    // Update weather every hour (3600000ms) to prevent temperature fluctuations
-    setInterval(updateWeather, 3600000);
+    // Update weather every 5 minutes to get fresh data (API is fast and free)
+    setInterval(updateWeather, 5 * 60 * 1000); // 5 minutes instead of 1 hour
     
-    // Clear weather cache every hour to allow temperature changes
+    // Clear weather cache every 5 minutes to ensure fresh data
     setInterval(() => {
         for (const key in weatherCache) {
             delete weatherCache[key];
         }
-    }, 3600000); // Clear every 60 minutes
+    }, 5 * 60 * 1000); // 5 minutes
     
     // Apply dark mode if enabled
     if (darkMode) {
@@ -1160,6 +1162,7 @@ async function fetchRealWeather(cityName) {
         const data = await response.json();
         
         if (data.current) {
+            console.log(`${cityName}: ${data.current.temperature_2m}°C, Humidity: ${data.current.relative_humidity_2m}%`);
             return {
                 temp: Math.round(data.current.temperature_2m),
                 humidity: data.current.relative_humidity_2m,
