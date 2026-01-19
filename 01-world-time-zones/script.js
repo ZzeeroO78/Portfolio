@@ -1,6 +1,10 @@
 // Comprehensive cities database - 760+ cities worldwide (v2.0)
 // Updated: January 18, 2026 - Includes Sarajevo and 765+ world cities
 // Total unique cities: 766 (with proper timezone mapping)
+
+// Weather cache to prevent rapid fluctuations
+const weatherCache = {};
+
 const citiesDatabase = {
     // North America
     'abaie mahault': 'America/Puerto_Rico',
@@ -810,6 +814,13 @@ function init() {
     setInterval(updateTime, 500);
     setInterval(updateHeaderTime, 500);
     
+    // Clear weather cache every hour to allow temperature changes
+    setInterval(() => {
+        for (const key in weatherCache) {
+            delete weatherCache[key];
+        }
+    }, 3600000); // Clear every 60 minutes
+    
     // Apply dark mode if enabled
     if (darkMode) {
         document.body.classList.add('dark-mode');
@@ -1071,7 +1082,7 @@ function getWeatherInfo(timezone, cityName) {
     // Get base temperature for current season
     const baseTemp = data[season];
     
-    // Get local time for the city in this timezone using a proper date object
+    // Get local time for the city in this timezone
     const now = new Date();
     const timeStr = now.toLocaleString('en-US', {
         timeZone: timezone,
@@ -1080,12 +1091,11 @@ function getWeatherInfo(timezone, cityName) {
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
         hour12: false
     });
     
-    // Parse the formatted string carefully
-    const parts = timeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/);
+    // Parse the formatted string - only use hour and day (not seconds/minutes for stability)
+    const parts = timeStr.match(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+)/);
     if (!parts) {
         return {
             icon: data.icon,
@@ -1096,21 +1106,26 @@ function getWeatherInfo(timezone, cityName) {
     }
     
     const hours = parseInt(parts[4]);
-    const minutes = parseInt(parts[5]);
     const dayOfMonth = parseInt(parts[2]);
+    const cacheKey = `${cityName}_${dayOfMonth}_${hours}`;
     
-    // Daily temperature cycle - warmer during 12-17h (noon to early evening), cooler at night
+    // Check cache to prevent rapid fluctuations
+    if (weatherCache[cacheKey]) {
+        return weatherCache[cacheKey];
+    }
+    
+    // Daily temperature cycle - warmer during midday, cooler at night
     // Uses cosine for smooth transitions
     const dailyCycle = Math.cos((hours - 14) * Math.PI / 12) * 5; // ±5°C centered at 14h (2PM)
     
-    // Stable variation: based on day of month and hour (not seconds or rapid minutes)
-    // This ensures same temperature throughout each hour, changes every hour
+    // Stable variation: based on day of month and hour only (no minutes or seconds)
+    // This ensures same temperature throughout each hour
     const stableVariation = Math.sin((dayOfMonth + hours) * Math.PI / 12) * 2; // ±2°C
     
     // Combine variations - stable throughout the hour
     const temp = Math.round((baseTemp + dailyCycle + stableVariation) * 10) / 10;
     
-    // Humidity: higher at night (22h-6h), lower during day (8h-20h)
+    // Humidity: higher at night, lower during day
     const baseHumidity = data.humidity;
     const humidityDaily = Math.cos((hours - 14) * Math.PI / 12) * 12; // ±12%
     const humidityVariation = Math.sin((dayOfMonth + hours) * Math.PI / 12) * 3; // ±3%
@@ -1120,12 +1135,17 @@ function getWeatherInfo(timezone, cityName) {
     const tempF = Math.round((temp * 9/5) + 32);
     const tempDisplay = useFahrenheit ? `${tempF}°F` : `${temp}°C`;
     
-    return {
+    const result = {
         icon: data.icon,
         temp: tempDisplay,
         humidity: humidity,
         season: season
     };
+    
+    // Cache the result for this hour
+    weatherCache[cacheKey] = result;
+    
+    return result;
 }
 
 // Render all cities
