@@ -877,7 +877,8 @@ const defaultCities = [
     { name: 'Tokyo', timezone: 'Asia/Tokyo' },
     { name: 'Paris', timezone: 'Europe/Paris' },
     { name: 'Sydney', timezone: 'Australia/Sydney' },
-    { name: 'Dubai', timezone: 'Asia/Dubai' }
+    { name: 'Dubai', timezone: 'Asia/Dubai' },
+    { name: 'Sarajevo', timezone: 'Europe/Sarajevo' }
 ];
 
 let cities = [];
