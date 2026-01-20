@@ -26,11 +26,15 @@ app.get("/api/health", (req, res) => {
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../client/dist")));
+  // __dirname is server/src, so we go up twice to data-analysis-app, then into client/dist
+  const clientDistPath = path.join(__dirname, "..", "..", "client", "dist");
+  console.log("📁 Serving static files from:", clientDistPath);
+
+  app.use(express.static(clientDistPath));
 
   // Handle React routing, return all requests to React app
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+    res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
 
