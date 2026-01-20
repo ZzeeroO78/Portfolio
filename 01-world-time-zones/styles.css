@@ -378,25 +378,6 @@ header h2 {
     margin-bottom: 15px;
 }
 
-.city-weather {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(240, 147, 251, 0.1));
-    border-radius: 10px;
-    padding: 12px;
-    margin: 15px 0;
-    font-size: 0.9em;
-}
-
-.weather-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 5px 0;
-}
-
-.weather-icon {
-    font-size: 1.2em;
-}
-
 .time-period {
     display: inline-block;
     padding: 8px 15px;
