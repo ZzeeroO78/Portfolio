@@ -17,16 +17,25 @@ router.post("/admin-master", async (req, res) => {
     }
 
     // Pronađi ili kreiraj admin korisnika
-    let admin = db.prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1").get();
-    
+    let admin = db
+      .prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1")
+      .get();
+
     if (!admin) {
       // Kreiraj admin ako ne postoji
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash("admin123", salt);
-      const result = db.prepare(
-        "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)"
-      ).run("SuperAdmin", "admin@system.local", hashedPassword, "admin");
-      admin = { id: result.lastInsertRowid, username: "SuperAdmin", email: "admin@system.local", role: "admin" };
+      const result = db
+        .prepare(
+          "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)"
+        )
+        .run("SuperAdmin", "admin@system.local", hashedPassword, "admin");
+      admin = {
+        id: result.lastInsertRowid,
+        username: "SuperAdmin",
+        email: "admin@system.local",
+        role: "admin",
+      };
     }
 
     // Generiši token
@@ -35,9 +44,9 @@ router.post("/admin-master", async (req, res) => {
     });
 
     // Log aktivnost
-    db.prepare("INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)").run(
-      admin.id, "MASTER_LOGIN", "Admin pristup preko master ključa"
-    );
+    db.prepare(
+      "INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)"
+    ).run(admin.id, "MASTER_LOGIN", "Admin pristup preko master ključa");
 
     res.json({
       message: "Master pristup odobren!",
@@ -76,12 +85,9 @@ router.post("/register", async (req, res) => {
       .prepare("SELECT id FROM users WHERE email = ? OR username = ?")
       .get(email, username);
     if (existingUser) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Korisnik sa ovim emailom ili korisničkim imenom već postoji.",
-        });
+      return res.status(400).json({
+        message: "Korisnik sa ovim emailom ili korisničkim imenom već postoji.",
+      });
     }
 
     // Hash lozinke
@@ -185,6 +191,56 @@ router.post("/login", async (req, res) => {
 // Dohvati trenutnog korisnika
 router.get("/me", authenticate, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Promjena lozinke
+router.put("/change-password", authenticate, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Sva polja su obavezna." });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Nova lozinka mora imati najmanje 6 znakova." });
+    }
+
+    // Dohvati korisnika sa lozinkom
+    const user = db
+      .prepare("SELECT * FROM users WHERE id = ?")
+      .get(req.user.id);
+
+    // Provjeri trenutnu lozinku
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ message: "Trenutna lozinka nije ispravna." });
+    }
+
+    // Hash nove lozinke
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Ažuriraj lozinku
+    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(
+      hashedPassword,
+      req.user.id
+    );
+
+    // Log aktivnost
+    db.prepare(
+      "INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)"
+    ).run(req.user.id, "PASSWORD_CHANGE", "Korisnik promijenio lozinku");
+
+    res.json({ message: "Lozinka uspješno promijenjena." });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ message: "Greška na serveru." });
+  }
 });
 
 module.exports = router;

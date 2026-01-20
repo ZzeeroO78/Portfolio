@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import toast from 'react-hot-toast';
-import { FiShield, FiKey } from 'react-icons/fi';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
+import toast from "react-hot-toast";
+import { FiShield, FiKey } from "react-icons/fi";
 
 const AdminAccess = () => {
-  const [masterKey, setMasterKey] = useState('');
+  const [masterKey, setMasterKey] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -14,12 +14,12 @@ const AdminAccess = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/auth/admin-master', { masterKey });
-      localStorage.setItem('token', res.data.token);
-      toast.success('🔓 Master pristup odobren!');
-      window.location.href = '/dashboard'; // Full reload da se učita user
+      const res = await api.post("/auth/admin-master", { masterKey });
+      localStorage.setItem("token", res.data.token);
+      toast.success("🔓 Master pristup odobren!");
+      window.location.href = "/dashboard"; // Full reload da se učita user
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Pristup odbijen');
+      toast.error(error.response?.data?.message || "Pristup odbijen");
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ const AdminAccess = () => {
             disabled={loading}
             className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Provjera...' : 'Pristupi'}
+            {loading ? "Provjera..." : "Pristupi"}
           </button>
         </form>
 

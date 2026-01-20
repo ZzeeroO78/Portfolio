@@ -87,6 +87,76 @@ router.get("/stats", authenticate, authorizeMinRole("menadjer"), (req, res) => {
   }
 });
 
+// Export podataka u CSV (Menadžer+)
+router.get(
+  "/export",
+  authenticate,
+  authorizeMinRole("menadjer"),
+  (req, res) => {
+    try {
+      const { startDate, endDate, category } = req.query;
+
+      let query = "SELECT * FROM sales_data WHERE 1=1";
+      const params = [];
+
+      if (startDate) {
+        query += " AND date >= ?";
+        params.push(startDate);
+      }
+      if (endDate) {
+        query += " AND date <= ?";
+        params.push(endDate);
+      }
+      if (category && category !== "all") {
+        query += " AND category = ?";
+        params.push(category);
+      }
+
+      query += " ORDER BY date DESC";
+
+      const data = db.prepare(query).all(...params);
+
+      // Generiši CSV
+      const headers = [
+        "ID",
+        "Proizvod",
+        "Kategorija",
+        "Količina",
+        "Cijena",
+        "Ukupno",
+        "Datum",
+      ];
+      const csvRows = [headers.join(",")];
+
+      data.forEach((row) => {
+        csvRows.push(
+          [
+            row.id,
+            `"${row.product_name}"`,
+            `"${row.category}"`,
+            row.quantity,
+            row.price,
+            row.total,
+            row.date,
+          ].join(",")
+        );
+      });
+
+      const csv = csvRows.join("\n");
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=sales_export.csv"
+      );
+      res.send(csv);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({ message: "Greška pri exportu." });
+    }
+  }
+);
+
 // Dodaj novi zapis (Vlasnik+)
 router.post("/", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
   try {

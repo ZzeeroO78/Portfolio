@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
-import { FiMail, FiLock, FiUser } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiBarChart2 } from "react-icons/fi";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -27,20 +27,22 @@ const Login = () => {
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl card-shadow w-full max-w-md p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl card-shadow w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-            <FiUser className="w-8 h-8 text-primary-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full mb-4">
+            <FiBarChart2 className="w-8 h-8 text-primary-600 dark:text-primary-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             Dobrodošli natrag
           </h1>
-          <p className="text-gray-500 mt-2">Prijavite se na svoj račun</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
+            Prijavite se na svoj račun
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email adresa
             </label>
             <div className="relative">
@@ -49,7 +51,7 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 placeholder="vas@email.com"
                 required
               />
@@ -57,7 +59,7 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Lozinka
             </label>
             <div className="relative">
@@ -66,7 +68,7 @@ const Login = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
                 placeholder="••••••••"
                 required
               />
@@ -82,11 +84,11 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="text-center mt-6 text-gray-600">
+        <p className="text-center mt-6 text-gray-600 dark:text-gray-400">
           Nemate račun?{" "}
           <Link
             to="/register"
-            className="text-primary-600 font-semibold hover:underline"
+            className="text-primary-600 dark:text-primary-400 font-semibold hover:underline"
           >
             Registrirajte se
           </Link>
