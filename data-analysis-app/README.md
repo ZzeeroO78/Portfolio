@@ -238,7 +238,7 @@ MIT License - slobodno koristi za osobne i komercijalne projekte.
 
 ## 👤 Autor
 
-Emin J.
+Emin.S
 
 ---
 
