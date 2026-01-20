@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import api from "../services/api";
 import toast from "react-hot-toast";
 import {
@@ -18,6 +19,7 @@ import {
 
 const DataManagement = () => {
   const { hasMinRole } = useAuth();
+  const { onDataAdded, onDataUpdated, onDataDeleted } = useData();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -128,9 +130,11 @@ const DataManagement = () => {
       if (editingItem) {
         await api.put(`/data/${editingItem.id}`, formData);
         toast.success("Zapis uspješno ažuriran");
+        onDataUpdated(formData); // Notify about update
       } else {
-        await api.post("/data", formData);
+        const response = await api.post("/data", formData);
         toast.success("Zapis uspješno dodan");
+        onDataAdded(response.data.data); // Notify about new data
       }
       loadData();
       closeModal();
@@ -144,6 +148,7 @@ const DataManagement = () => {
     try {
       await api.delete(`/data/${id}`);
       toast.success("Zapis uspješno obrisan");
+      onDataDeleted(id); // Notify about deletion
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.message || "Greška pri brisanju");

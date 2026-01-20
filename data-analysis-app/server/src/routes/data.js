@@ -166,7 +166,8 @@ router.post("/", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
       return res.status(400).json({ message: "Sva polja su obavezna." });
     }
 
-    const total = quantity * price;
+    // Automatsko računanje ukupne vrijednosti
+    const total = parseFloat(quantity) * parseFloat(price);
 
     const result = db
       .prepare(
@@ -180,7 +181,22 @@ router.post("/", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
     // Log aktivnost
     db.prepare(
       "INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)"
-    ).run(req.user.id, "DATA_ADD", `Dodan zapis: ${product_name}`);
+    ).run(
+      req.user.id,
+      "DATA_ADD",
+      `Dodan: ${product_name} | Količina: ${quantity} | Cijena: ${price}€ | Ukupno: ${total.toFixed(2)}€`
+    );
+
+    // Dohvati ažurirane statistike za real-time update
+    const newStats = db
+      .prepare(
+        `
+      SELECT 
+        (SELECT SUM(total) FROM sales_data) as totalSales,
+        (SELECT COUNT(*) FROM sales_data) as transactionCount
+    `
+      )
+      .get();
 
     res.status(201).json({
       message: "Zapis uspješno dodan.",
@@ -188,12 +204,13 @@ router.post("/", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
         id: result.lastInsertRowid,
         product_name,
         category,
-        quantity,
-        price,
+        quantity: parseFloat(quantity),
+        price: parseFloat(price),
         total,
         date,
         created_by: req.user.id,
       },
+      stats: newStats,
     });
   } catch (error) {
     console.error("Add data error:", error);
@@ -214,7 +231,9 @@ router.put("/:id", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
       return res.status(404).json({ message: "Zapis nije pronađen." });
     }
 
-    const total = quantity * price;
+    // Automatsko računanje ukupne vrijednosti
+    const total = parseFloat(quantity) * parseFloat(price);
+    const difference = total - existing.total;
 
     db.prepare(
       `
@@ -224,12 +243,29 @@ router.put("/:id", authenticate, authorizeMinRole("vlasnik"), (req, res) => {
     `
     ).run(product_name, category, quantity, price, total, date, id);
 
-    // Log aktivnost
+    // Log aktivnost sa detaljima promjene
     db.prepare(
       "INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)"
-    ).run(req.user.id, "DATA_UPDATE", `Ažuriran zapis ID: ${id}`);
+    ).run(
+      req.user.id,
+      "DATA_UPDATE",
+      `Ažuriran ID: ${id} | ${existing.product_name} → ${product_name} | Razlika: ${difference >= 0 ? "+" : ""}${difference.toFixed(2)}€`
+    );
 
-    res.json({ message: "Zapis uspješno ažuriran." });
+    res.json({
+      message: "Zapis uspješno ažuriran.",
+      data: {
+        id: parseInt(id),
+        product_name,
+        category,
+        quantity: parseFloat(quantity),
+        price: parseFloat(price),
+        total,
+        date,
+      },
+      previousTotal: existing.total,
+      difference,
+    });
   } catch (error) {
     console.error("Update data error:", error);
     res.status(500).json({ message: "Greška na serveru." });
