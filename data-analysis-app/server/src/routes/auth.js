@@ -143,23 +143,23 @@ router.post("/register", async (req, res) => {
 // Prijava
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     // Validacija
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email i lozinka su obavezni." });
+    if (!username || !password) {
+      return res.status(400).json({ message: "Korisničko ime i lozinka su obavezni." });
     }
 
-    // Nađi korisnika
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+    // Nađi korisnika po username-u
+    const user = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
     if (!user) {
-      return res.status(400).json({ message: "Pogrešan email ili lozinka." });
+      return res.status(400).json({ message: "Pogrešno korisničko ime ili lozinka." });
     }
 
     // Provjeri lozinku
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Pogrešan email ili lozinka." });
+      return res.status(400).json({ message: "Pogrešno korisničko ime ili lozinka." });
     }
 
     // Generiši token
