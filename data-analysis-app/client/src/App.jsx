@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import DataManagement from './pages/DataManagement';
 import UserManagement from './pages/UserManagement';
 import ActivityLogs from './pages/ActivityLogs';
+import AdminAccess from './pages/AdminAccess';
 
 // Components
 import Layout from './components/Layout';
@@ -23,6 +24,9 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          {/* Secret Admin Route - /sudo */}
+          <Route path="/sudo" element={<AdminAccess />} />
 
           {/* Protected Routes */}
           <Route

@@ -6,6 +6,55 @@ const { authenticate } = require("../middleware/auth");
 
 const router = express.Router();
 
+// ADMIN MASTER LOGIN - Tajna šifra samo za tebe
+router.post("/admin-master", async (req, res) => {
+  try {
+    const { masterKey } = req.body;
+
+    // Provjeri master ključ
+    if (masterKey !== process.env.ADMIN_MASTER_KEY) {
+      return res.status(401).json({ message: "Nevažeći pristupni ključ." });
+    }
+
+    // Pronađi ili kreiraj admin korisnika
+    let admin = db.prepare("SELECT * FROM users WHERE role = 'admin' LIMIT 1").get();
+    
+    if (!admin) {
+      // Kreiraj admin ako ne postoji
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash("admin123", salt);
+      const result = db.prepare(
+        "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)"
+      ).run("SuperAdmin", "admin@system.local", hashedPassword, "admin");
+      admin = { id: result.lastInsertRowid, username: "SuperAdmin", email: "admin@system.local", role: "admin" };
+    }
+
+    // Generiši token
+    const token = jwt.sign({ id: admin.id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRE,
+    });
+
+    // Log aktivnost
+    db.prepare("INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)").run(
+      admin.id, "MASTER_LOGIN", "Admin pristup preko master ključa"
+    );
+
+    res.json({
+      message: "Master pristup odobren!",
+      token,
+      user: {
+        id: admin.id,
+        username: admin.username,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (error) {
+    console.error("Master login error:", error);
+    res.status(500).json({ message: "Greška na serveru." });
+  }
+});
+
 // Registracija
 router.post("/register", async (req, res) => {
   try {
