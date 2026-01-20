@@ -1,4 +1,5 @@
 const Database = require("better-sqlite3");
+const bcrypt = require("bcryptjs");
 const path = require("path");
 
 const db = new Database(path.join(__dirname, "../../data.db"));
@@ -36,6 +37,29 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 `);
+
+// Dodaj default korisnike ako tabela prazna
+const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get();
+if (userCount.count === 0) {
+  console.log("Kreiram default korisnike...");
+  
+  // Sync hash za inicijalizaciju (bcrypt.hashSync je ok za startup)
+  const adminPass = bcrypt.hashSync("admin123", 10);
+  const vlasnikPass = bcrypt.hashSync("vlasnik123", 10);
+  const menadjerPass = bcrypt.hashSync("menadjer123", 10);
+  const radnikPass = bcrypt.hashSync("radnik123", 10);
+
+  const insertUser = db.prepare(`
+    INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)
+  `);
+
+  insertUser.run("admin", "admin@dataanalysis.com", adminPass, "admin");
+  insertUser.run("vlasnik", "vlasnik@dataanalysis.com", vlasnikPass, "vlasnik");
+  insertUser.run("menadjer", "menadjer@dataanalysis.com", menadjerPass, "menadjer");
+  insertUser.run("radnik", "radnik@dataanalysis.com", radnikPass, "radnik");
+
+  console.log("Default korisnici kreirani!");
+}
 
 // Dodaj demo podatke ako tabela prazna
 const count = db.prepare("SELECT COUNT(*) as count FROM sales_data").get();
