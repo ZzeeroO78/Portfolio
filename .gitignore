@@ -1,0 +1,85 @@
+# Git ignore file for Portfolio repository
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+*.min.js
+*.min.css
+*.bundle.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+.eslintcache
+.vuepress/dist
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+*.key
+secret*.txt
+credentials.json
+
+# OS specific
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Local development
+.env.local
+local.config.js
+
+# GitHub Pages
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# Browser data
+.cache/
+session-storage.json
+
+# Project specific
+world-time-app/
+backup/
+old/
+
+# Compiled files
+*.pyc
+__pycache__/
+*.egg-info/
+
+# Service Worker (development)
+sw-debug.js

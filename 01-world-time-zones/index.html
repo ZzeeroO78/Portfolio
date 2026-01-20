@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Real-time world time zones tracker with 766 cities worldwide. Check current time, weather, day/night status, and timezone info with dark mode.">
+    <meta name="theme-color" content="#667eea">
+    <meta name="keywords" content="world time, time zones, world clock, current time, city times, timezone converter, 24 hour clock">
+    <meta name="author" content="World Time Zones">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph for Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zzeeroo78.github.io/Portfolio/01-world-time-zones/">
+    <meta property="og:title" content="World Time Zones - Real-time Global Clock Tracker">
+    <meta property="og:description" content="Track current time in 766 cities worldwide with weather info and dark mode support">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'><rect fill='%23667eea' width='1200' height='630'/><text x='600' y='315' font-size='200' text-anchor='middle' dominant-baseline='central'>🌍</text></svg>">
+    
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://zzeeroo78.github.io/Portfolio/01-world-time-zones/">
+    <meta property="twitter:title" content="World Time Zones - Global Clock">
+    <meta property="twitter:description" content="Check current time in 766 cities worldwide">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://zzeeroo78.github.io/Portfolio/01-world-time-zones/">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css?v=5.3">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🌍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23667eea' width='180' height='180' rx='39'/><text x='90' y='130' font-size='120' text-anchor='middle'>🌍</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Preconnect to optimize resource loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <title>World Time Zones - Real-time Global Clock with 766 Cities</title>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <h1 class="nav-title">🌍 World Time Zones</h1>
+                <div class="nav-controls">
+                    <button id="darkModeToggle" class="nav-btn" title="Dark Mode">
+                        🌙
+                    </button>
+                    <button id="settingsBtn" class="nav-btn" title="Settings">
+                        ⚙️
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header>
+            <h2>Check the current time in major cities around the world</h2>
+            <p id="currentTime" class="header-time"></p>
+        </header>
+
+        <!-- Search & Controls Section -->
+        <div class="controls-section">
+            <div class="search-section">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-box" 
+                    placeholder="Search cities..."
+                >
+            </div>
+
+            <div class="controls">
+                <button id="timeFormatBtn" class="btn" title="Toggle 12/24 hour format">
+                    🕐 24H
+                </button>
+                <button id="sortBtn" class="btn" title="Sort cities">
+                    📊 Sort
+                </button>
+                <button id="add-city-btn" class="btn btn-primary" title="Add new city">
+                    ➕ Add City
+                </button>
+                <button id="resetBtn" class="btn" title="Reset to default cities">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">Cities</span>
+                <span class="stat-value" id="cityCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Latest Update</span>
+                <span class="stat-value" id="updateTime">Now</span>
+            </div>
+        </div>
+
+        <!-- Cities Grid -->
+        <div id="citiesGrid" class="cities-grid">
+            <!-- Cities will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Add City Modal -->
+    <div id="addCityModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>➕ Add a New City</h2>
+            <p class="modal-hint">Enter a major city name (e.g., Tokyo, Paris, Mumbai)</p>
+            <input 
+                type="text" 
+                id="cityInput" 
+                class="modal-input"
+                placeholder="City name..."
+                autocomplete="off"
+            >
+            <div id="suggestions" class="suggestions"></div>
+            <button id="confirmAddBtn" class="btn btn-primary btn-full">Add City</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>⚙️ Settings</h2>
+            <div class="settings-group">
+                <label class="setting-item">
+                    <input type="checkbox" id="showWeather" checked>
+                    <span>Show Weather Info</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="showSeconds" checked>
+                    <span>Show Seconds</span>
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="useF" unchecked>
+                    <span>Use Fahrenheit</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🌍 World Time Zones</h3>
+                <p>Track time in 766+ cities worldwide with real-time updates and weather information.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Features</h4>
+                <ul>
+                    <li>✓ 766 Cities Worldwide</li>
+                    <li>✓ Real-time Updates</li>
+                    <li>✓ Dark Mode</li>
+                    <li>✓ Weather Info</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="https://github.com/ZzeeroO78/Portfolio" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                    <li><a href="README.md" target="_blank">Documentation</a></li>
+                    <li><a href="https://github.com/ZzeeroO78" target="_blank" rel="noopener noreferrer">GitHub Profile</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>About</h4>
+                <p>Built with HTML5, CSS3, and Vanilla JavaScript. No external dependencies for icons.</p>
+                <p class="footer-info">© 2026 World Time Zones. Made with 💙</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 World Time Zones. All rights reserved. | <a href="#" onclick="alert('Privacy: No data collection. All data stored locally.')">Privacy</a></p>
+        </div>
+    </footer>
+
+    <!-- Main Script -->
+    <script src="script.js?v=5.3"></script>
+    
+    <!-- Service Worker Registration for PWA -->
+    <script src="updater.js?v=5.3"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js?v=5.3').catch(err => {
+                console.log('Service Worker registration failed, app will work in online mode');
+            });
+        }
+        
+        // Loading Complete - Hide loader if present
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'none';
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'k':
+                        e.preventDefault();
+                        document.getElementById('searchInput').focus();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        openAddModal();
+                        break;
+                    case ',':
+                        e.preventDefault();
+                        openSettingsModal();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
