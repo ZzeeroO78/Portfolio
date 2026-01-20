@@ -1,0 +1,21 @@
+{
+  "name": "data-analysis-app",
+  "version": "1.0.0",
+  "description": "Data Analysis Application with Role-Based Access Control",
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "data-analysis",
+    "dashboard",
+    "rbac"
+  ],
+  "author": "",
+  "license": "MIT"
+}
