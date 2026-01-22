@@ -229,6 +229,8 @@ function loadSettings() {
 
 // Setup event listeners
 function setupEventListeners() {
+    console.log('🔗 setupEventListeners() pozvana');
+    
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', renderCities);
@@ -236,15 +238,22 @@ function setupEventListeners() {
 
     // Add City Modal - Open button
     const addBtn = document.getElementById('addCityBtn');
+    console.log('📍 addCityBtn pronađen:', addBtn ? 'DA' : 'NE');
     if (addBtn) {
+        console.log('✅ Event listener dodano na addCityBtn');
         addBtn.addEventListener('click', () => {
+            console.log('🔵 addCityBtn kliknut');
             const modal = document.getElementById('cityModal');
+            console.log('📭 Modal pronađen:', modal ? 'DA' : 'NE');
             if (modal) {
                 modal.classList.add('show');
+                console.log('✅ Modal prikazан');
                 const cityInput = document.getElementById('cityInput');
                 if (cityInput) cityInput.focus();
             }
         });
+    } else {
+        console.log('❌ addCityBtn NIJE pronađen!');
     }
 
     // Add City Modal - Confirm button
@@ -261,11 +270,15 @@ function setupEventListeners() {
 
     // Settings Modal
     const settingsBtn = document.getElementById('settingsBtn');
+    console.log('📍 settingsBtn pronađen:', settingsBtn ? 'DA' : 'NE');
     if (settingsBtn) {
+        console.log('✅ Event listener dodano na settingsBtn');
         settingsBtn.addEventListener('click', () => {
+            console.log('🔵 settingsBtn kliknut');
             const modal = document.getElementById('settingsModal');
             if (modal) {
                 modal.classList.add('show');
+                console.log('✅ Settings modal prikazan');
             }
         });
     }
@@ -356,14 +369,17 @@ function applyDarkMode() {
 
 // Initialize
 function init() {
+    console.log('🚀 init() pozvana');
     loadSettings();
     loadCitiesFromStorage();
+    console.log('Pozivam setupEventListeners()...');
     setupEventListeners();
     applyDarkMode();
     renderCities();
 
     // Update time every 500ms
     setInterval(updateTime, 500);
+    console.log('✅ Inicijalizacija završena');
 }
 
 // Start when DOM is ready
