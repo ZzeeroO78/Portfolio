@@ -73,6 +73,12 @@ function renderCities() {
     const grid = document.getElementById('citiesGrid');
     if (!grid) return;
 
+    // Update city count
+    const cityCountElement = document.getElementById('cityCount');
+    if (cityCountElement) {
+        cityCountElement.textContent = cities.length;
+    }
+
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
@@ -228,15 +234,63 @@ function setupEventListeners() {
         searchInput.addEventListener('input', renderCities);
     }
 
+    // Add City Modal - Open button
     const addBtn = document.getElementById('addCityBtn');
     if (addBtn) {
-        addBtn.addEventListener('click', addCity);
+        addBtn.addEventListener('click', () => {
+            const modal = document.getElementById('cityModal');
+            if (modal) {
+                modal.classList.add('show');
+                const cityInput = document.getElementById('cityInput');
+                if (cityInput) cityInput.focus();
+            }
+        });
     }
+
+    // Add City Modal - Confirm button
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            addCity();
+            const modal = document.getElementById('cityModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        });
+    }
+
+    // Settings Modal
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            const modal = document.getElementById('settingsModal');
+            if (modal) {
+                modal.classList.add('show');
+            }
+        });
+    }
+
+    // Close buttons
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        });
+    });
 
     const cityInput = document.getElementById('cityInput');
     if (cityInput) {
         cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addCity();
+            if (e.key === 'Enter') {
+                addCity();
+                const modal = document.getElementById('cityModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            }
         });
     }
 
@@ -275,6 +329,10 @@ function setupEventListeners() {
                 cities = JSON.parse(JSON.stringify(defaultCities));
                 saveCitiesToStorage();
                 renderCities();
+                const modal = document.getElementById('settingsModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
             }
         });
     }
