@@ -2,10 +2,14 @@
 // World Time Zones - CLEAN VERSION (Time Only)
 // ============================================
 
+console.log('📝 script.js učitan - START');
+
 let cities = [];
 let use24HourFormat = true;
 let showSeconds = true;
 let darkMode = false;
+
+console.log('Globalne varijable inicijalizirane');
 
 const defaultCities = [
     { name: 'London', timezone: 'Europe/London' },
@@ -188,19 +192,23 @@ function saveCitiesToStorage() {
 }
 
 function loadCitiesFromStorage() {
+    console.log('🔍 loadCitiesFromStorage() START');
     const stored = localStorage.getItem('worldTimeCities');
+    console.log('localStorage data:', stored ? 'DA' : 'NE');
     if (stored) {
         try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
                 cities = parsed;
+                console.log('✅ Cities iz storage:', cities.length);
                 return;
             }
         } catch (e) {
-            console.log('Storage reset');
+            console.log('Storage error:', e.message);
         }
     }
     cities = JSON.parse(JSON.stringify(defaultCities));
+    console.log('✅ Default cities:', cities.length);
     saveCitiesToStorage();
 }
 
@@ -369,18 +377,32 @@ function applyDarkMode() {
 
 // Initialize
 function init() {
-    console.log('🚀 init() pozvana');
+    console.log('🚀 init() pozvana - START');
+    console.log('cities prije loadCitiesFromStorage:', cities);
+    
     loadSettings();
+    console.log('Settings učitani');
+    
     loadCitiesFromStorage();
+    console.log('Cities učitani:', cities.length, 'gradova');
+    
     console.log('Pozivam setupEventListeners()...');
     setupEventListeners();
+    console.log('✅ setupEventListeners() završena');
+    
     applyDarkMode();
     renderCities();
 
     // Update time every 500ms
     setInterval(updateTime, 500);
-    console.log('✅ Inicijalizacija završena');
+    console.log('✅ Inicijalizacija ZAVRŠENA');
+    console.log('Finale cities:', cities);
 }
 
 // Start when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+console.log('Postavljam DOMContentLoaded listener...');
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOMContentLoaded event FIRING');
+    init();
+});
+console.log('DOMContentLoaded listener postavljen');
