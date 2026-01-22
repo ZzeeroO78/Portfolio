@@ -83,11 +83,8 @@
                 <button id="sortBtn" class="btn" title="Sort cities">
                     📊 Sort
                 </button>
-                <button id="add-city-btn" class="btn btn-primary" title="Add new city">
+                <button id="addCityBtn" class="btn btn-primary" title="Add new city">
                     ➕ Add City
-                </button>
-                <button id="resetBtn" class="btn" title="Reset to default cities">
-                    🔄 Reset
                 </button>
             </div>
         </div>
@@ -111,7 +108,7 @@
     </div>
 
     <!-- Add City Modal -->
-    <div id="addCityModal" class="modal">
+    <div id="cityModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>➕ Add a New City</h2>
@@ -124,7 +121,7 @@
                 autocomplete="off"
             >
             <div id="suggestions" class="suggestions"></div>
-            <button id="confirmAddBtn" class="btn btn-primary btn-full">Add City</button>
+            <button id="confirmBtn" class="btn btn-primary btn-full">Add City</button>
         </div>
     </div>
 
@@ -135,15 +132,18 @@
             <h2>⚙️ Settings</h2>
             <div class="settings-group">
                 <label class="setting-item">
+                    <input type="checkbox" id="format24Hour" checked>
+                    <span>24-Hour Format</span>
                 </label>
                 <label class="setting-item">
                     <input type="checkbox" id="showSeconds" checked>
                     <span>Show Seconds</span>
                 </label>
                 <label class="setting-item">
-                    <input type="checkbox" id="useF" unchecked>
-                    <span>Use Fahrenheit</span>
+                    <input type="checkbox" id="darkMode">
+                    <span>Dark Mode</span>
                 </label>
+                <button id="resetBtn" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">Reset Cities</button>
             </div>
         </div>
     </div>
