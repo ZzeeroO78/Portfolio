@@ -2,14 +2,10 @@
 // World Time Zones - CLEAN VERSION (Time Only)
 // ============================================
 
-console.log('📝 script.js učitan - START');
-
 let cities = [];
 let use24HourFormat = true;
 let showSeconds = true;
 let darkMode = false;
-
-console.log('Globalne varijable inicijalizirane');
 
 const defaultCities = [
     { name: 'London', timezone: 'Europe/London' },
@@ -192,23 +188,19 @@ function saveCitiesToStorage() {
 }
 
 function loadCitiesFromStorage() {
-    console.log('🔍 loadCitiesFromStorage() START');
     const stored = localStorage.getItem('worldTimeCities');
-    console.log('localStorage data:', stored ? 'DA' : 'NE');
     if (stored) {
         try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
                 cities = parsed;
-                console.log('✅ Cities iz storage:', cities.length);
                 return;
             }
         } catch (e) {
-            console.log('Storage error:', e.message);
+            // Silent catch - use defaults
         }
     }
     cities = JSON.parse(JSON.stringify(defaultCities));
-    console.log('✅ Default cities:', cities.length);
     saveCitiesToStorage();
 }
 
@@ -230,15 +222,13 @@ function loadSettings() {
             showSeconds = settings.showSeconds ?? true;
             darkMode = settings.darkMode ?? false;
         } catch (e) {
-            console.log('Settings reset');
+            // Silent catch - use defaults
         }
     }
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    console.log('🔗 setupEventListeners() pozvana');
-    
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', renderCities);
@@ -246,22 +236,15 @@ function setupEventListeners() {
 
     // Add City Modal - Open button
     const addBtn = document.getElementById('addCityBtn');
-    console.log('📍 addCityBtn pronađen:', addBtn ? 'DA' : 'NE');
     if (addBtn) {
-        console.log('✅ Event listener dodano na addCityBtn');
         addBtn.addEventListener('click', () => {
-            console.log('🔵 addCityBtn kliknut');
             const modal = document.getElementById('cityModal');
-            console.log('📭 Modal pronađen:', modal ? 'DA' : 'NE');
             if (modal) {
                 modal.classList.add('show');
-                console.log('✅ Modal prikazан');
                 const cityInput = document.getElementById('cityInput');
                 if (cityInput) cityInput.focus();
             }
         });
-    } else {
-        console.log('❌ addCityBtn NIJE pronađen!');
     }
 
     // Add City Modal - Confirm button
@@ -278,15 +261,11 @@ function setupEventListeners() {
 
     // Settings Modal
     const settingsBtn = document.getElementById('settingsBtn');
-    console.log('📍 settingsBtn pronađen:', settingsBtn ? 'DA' : 'NE');
     if (settingsBtn) {
-        console.log('✅ Event listener dodano na settingsBtn');
         settingsBtn.addEventListener('click', () => {
-            console.log('🔵 settingsBtn kliknut');
             const modal = document.getElementById('settingsModal');
             if (modal) {
                 modal.classList.add('show');
-                console.log('✅ Settings modal prikazan');
             }
         });
     }
@@ -377,32 +356,15 @@ function applyDarkMode() {
 
 // Initialize
 function init() {
-    console.log('🚀 init() pozvana - START');
-    console.log('cities prije loadCitiesFromStorage:', cities);
-    
     loadSettings();
-    console.log('Settings učitani');
-    
     loadCitiesFromStorage();
-    console.log('Cities učitani:', cities.length, 'gradova');
-    
-    console.log('Pozivam setupEventListeners()...');
     setupEventListeners();
-    console.log('✅ setupEventListeners() završena');
-    
     applyDarkMode();
     renderCities();
 
     // Update time every 500ms
     setInterval(updateTime, 500);
-    console.log('✅ Inicijalizacija ZAVRŠENA');
-    console.log('Finale cities:', cities);
 }
 
 // Start when DOM is ready
-console.log('Postavljam DOMContentLoaded listener...');
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎯 DOMContentLoaded event FIRING');
-    init();
-});
-console.log('DOMContentLoaded listener postavljen');
+document.addEventListener('DOMContentLoaded', init);
