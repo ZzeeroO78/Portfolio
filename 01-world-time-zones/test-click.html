@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Click Events</title>
+    <style>
+        body { font-family: Arial; padding: 30px; }
+        .test { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 2px solid #667eea; }
+        button { padding: 10px 20px; margin: 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #5568d3; }
+        button:active { transform: scale(0.98); }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test - Direktno testiranje dugmadi</h1>
+    
+    <div class="test">
+        <h2>Test 1: Klikni dugme ispod</h2>
+        <button id="testBtn">Testiraj klik</button>
+        <div id="log1" class="log">Klikni gornje dugme...</div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 2: Simuliraj klik</h2>
+        <button onclick="simulateClick()">Simuliraj klik na testBtn</button>
+        <div id="log2" class="log">Результат će biti ispisan ovdje</div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 3: Provjeri index.html</h2>
+        <iframe id="appFrame" src="index.html" width="100%" height="600" style="border: 2px solid #ddd;"></iframe>
+        <div id="log3" class="log">Čekam...</div>
+    </div>
+    
+    <script>
+        // Test 1
+        const testBtn = document.getElementById('testBtn');
+        testBtn.addEventListener('click', () => {
+            document.getElementById('log1').innerHTML += '<br>✅ Klik registrovan na testBtn!';
+        });
+        
+        // Test 2
+        function simulateClick() {
+            testBtn.click();
+            document.getElementById('log2').innerHTML = '✅ Klik simuliran - pogledaj Test 1';
+        }
+        
+        // Test 3 - Check index.html after load
+        setTimeout(() => {
+            try {
+                const iframe = document.getElementById('appFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                const addBtn = iframeDoc.getElementById('addCityBtn');
+                if (addBtn) {
+                    document.getElementById('log3').innerHTML = '✅ addCityBtn pronađen u index.html<br>';
+                    document.getElementById('log3').innerHTML += '✓ Element je <strong>clickable</strong><br>';
+                    
+                    // Try to click it
+                    addBtn.click();
+                    setTimeout(() => {
+                        const modal = iframeDoc.getElementById('cityModal');
+                        if (modal && modal.classList.contains('show')) {
+                            document.getElementById('log3').innerHTML += '✅ Modal se otvorio nakon klika!';
+                        } else {
+                            document.getElementById('log3').innerHTML += '⚠️ Modal se ne otvorio - trebam provjeriti JS';
+                        }
+                    }, 200);
+                } else {
+                    document.getElementById('log3').innerHTML = '❌ addCityBtn NIJE pronađen!';
+                }
+            } catch (e) {
+                document.getElementById('log3').innerHTML = '❌ Greška: ' + e.message;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

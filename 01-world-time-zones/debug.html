@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Weather</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; background: #1a1a1a; color: #0f0; padding: 20px; }
+        .console { background: #000; border: 2px solid #0f0; padding: 20px; border-radius: 5px; min-height: 400px; max-height: 600px; overflow-y: auto; }
+        .log { margin: 5px 0; padding: 5px; }
+        .info { color: #0f0; }
+        .error { color: #f00; }
+        .warn { color: #ff0; }
+        button { margin: 10px 5px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Weather Debug Console</h1>
+    <button onclick="loadApp()">Load App + Console</button>
+    <button onclick="clearLog()">Clear Log</button>
+    <button onclick="testAPI()">Test API Only</button>
+    
+    <div class="console" id="console"></div>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        
+        // Presretni console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(msg, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `log ${type}`;
+            line.textContent = msg;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => { addLog(args.join(' '), 'info'); originalLog(...args); };
+        console.error = (...args) => { addLog(args.join(' '), 'error'); originalError(...args); };
+        console.warn = (...args) => { addLog(args.join(' '), 'warn'); originalWarn(...args); };
+        
+        function clearLog() {
+            consoleDiv.innerHTML = '';
+        }
+        
+        async function testAPI() {
+            addLog('🧪 Testing API directly...', 'info');
+            const url = 'https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto';
+            
+            try {
+                const resp = await fetch(url);
+                const data = await resp.json();
+                
+                if (data.current) {
+                    addLog(`✅ API Success! Temp: ${data.current.temperature_2m}°C`, 'info');
+                } else {
+                    addLog(`❌ No current data in response`, 'error');
+                }
+            } catch (e) {
+                addLog(`❌ API Error: ${e.message}`, 'error');
+            }
+        }
+        
+        function loadApp() {
+            addLog('📱 Loading application...', 'info');
+            const iframe = document.createElement('iframe');
+            iframe.src = 'http://localhost:8002/index.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            iframe.style.marginTop = '20px';
+            iframe.style.border = '1px solid #667eea';
+            document.body.appendChild(iframe);
+            
+            addLog('📱 App loaded in iframe above', 'info');
+            addLog('📝 Watch this console for weather debug messages...', 'warn');
+        }
+        
+        window.addEventListener('load', () => {
+            addLog('🚀 Debug console ready', 'info');
+        });
+    </script>
+</body>
+</html>

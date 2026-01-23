@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        pre { background: #eee; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>💾 Storage Debug</h1>
+    
+    <h2>localStorage Keys:</h2>
+    <pre id="keys"></pre>
+    
+    <h2>worldTimeCities:</h2>
+    <pre id="cities"></pre>
+    
+    <h2>worldTimeSettings:</h2>
+    <pre id="settings"></pre>
+
+    <script>
+        // List all keys
+        let keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            keys.push(localStorage.key(i));
+        }
+        document.getElementById('keys').textContent = keys.length === 0 ? 'Empty' : keys.join('\n');
+
+        // Show cities
+        const cities = localStorage.getItem('worldTimeCities');
+        document.getElementById('cities').textContent = cities ? JSON.stringify(JSON.parse(cities), null, 2) : 'Not found';
+
+        // Show settings
+        const settings = localStorage.getItem('worldTimeSettings');
+        document.getElementById('settings').textContent = settings ? JSON.stringify(JSON.parse(settings), null, 2) : 'Not found';
+    </script>
+</body>
+</html>

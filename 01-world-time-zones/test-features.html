@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Features</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #667eea; }
+        .pass { border-left-color: #4caf50; }
+        .fail { border-left-color: #f44336; }
+        .warn { border-left-color: #ff9800; }
+        h2 { margin-top: 0; }
+        .status { font-size: 18px; font-weight: bold; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #5568d3; }
+        iframe { width: 100%; height: 600px; border: 2px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>✅ Test Features - World Time Zones</h1>
+    <div id="tests"></div>
+    
+    <h2>Live Test</h2>
+    <button onclick="testSearch()">Test Search</button>
+    <button onclick="testDarkMode()">Test Dark Mode</button>
+    <button onclick="testAddCity()">Test Add City</button>
+    <button onclick="testFormat24()">Test 24-Hour Format</button>
+    
+    <h2>Aplikacija</h2>
+    <iframe src="index.html"></iframe>
+    
+    <script>
+        const testsDiv = document.getElementById('tests');
+        
+        function addTest(title, status, message) {
+            const div = document.createElement('div');
+            div.className = `test-section ${status}`;
+            div.innerHTML = `
+                <h3>${title}</h3>
+                <div class="status">${status === 'pass' ? '✅ PASS' : status === 'fail' ? '❌ FAIL' : '⚠️ WARN'}</div>
+                <p>${message}</p>
+            `;
+            testsDiv.appendChild(div);
+        }
+        
+        // Test 1: Time Display
+        try {
+            const now = new Date();
+            const londonTime = now.toLocaleString('en-US', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
+            addTest('Time Display', 'pass', `✅ Vrijeme se može prikazati za različite vremenske zone (London: ${londonTime})`);
+        } catch (e) {
+            addTest('Time Display', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test 2: localStorage
+        try {
+            localStorage.setItem('test', 'ok');
+            const test = localStorage.getItem('test');
+            localStorage.removeItem('test');
+            addTest('localStorage', test === 'ok' ? 'pass' : 'fail', test === 'ok' ? '✅ localStorage radi' : '❌ localStorage NE radi');
+        } catch (e) {
+            addTest('localStorage', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test 3: JSON Parse/Stringify
+        try {
+            const testObj = { name: 'London', timezone: 'Europe/London' };
+            const str = JSON.stringify(testObj);
+            const parsed = JSON.parse(str);
+            if (parsed.name === 'London') {
+                addTest('JSON Operations', 'pass', '✅ JSON parse/stringify radi ispravno');
+            } else {
+                addTest('JSON Operations', 'fail', '❌ JSON nije ispravan');
+            }
+        } catch (e) {
+            addTest('JSON Operations', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test 4: Array Methods
+        try {
+            const cities = [
+                { name: 'London', timezone: 'Europe/London' },
+                { name: 'Paris', timezone: 'Europe/Paris' }
+            ];
+            const filtered = cities.filter(c => c.name === 'London');
+            if (filtered.length === 1) {
+                addTest('Array Filtering', 'pass', '✅ Array filter metoda radi');
+            } else {
+                addTest('Array Filtering', 'fail', '❌ Array filter NE radi ispravno');
+            }
+        } catch (e) {
+            addTest('Array Filtering', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test 5: DOM Manipulation
+        try {
+            const test = document.getElementById('tests');
+            if (test) {
+                addTest('DOM Manipulation', 'pass', '✅ DOM je dostupan i može se mijenjati');
+            } else {
+                addTest('DOM Manipulation', 'fail', '❌ DOM nije dostupan');
+            }
+        } catch (e) {
+            addTest('DOM Manipulation', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test 6: Event Listeners
+        try {
+            let eventFired = false;
+            const btn = document.createElement('button');
+            btn.addEventListener('click', () => { eventFired = true; });
+            btn.click();
+            addTest('Event Listeners', eventFired ? 'pass' : 'fail', eventFired ? '✅ Event listeners rade' : '❌ Event listeners NE rade');
+        } catch (e) {
+            addTest('Event Listeners', 'fail', `❌ Greška: ${e.message}`);
+        }
+        
+        // Test functions
+        function testSearch() {
+            alert('Testiraj:\n1. Unesi "London" u search box\n2. Trebao bi viditi samo London\n3. Obriši tekst - trebali bi viditi svi gradovi');
+        }
+        
+        function testDarkMode() {
+            alert('Testiraj:\n1. Klikni Dark Mode checkbox\n2. Stranica bi trebala postati tamnija\n3. Refresh stranicu - Dark Mode bi trebao ostati uključen');
+        }
+        
+        function testAddCity() {
+            alert('Testiraj:\n1. Unesi "Tokyo" u "Add City" box\n2. Klikni "Add"\n3. Tokyo bi trebao biti dodat (ako nije već dodan)');
+        }
+        
+        function testFormat24() {
+            alert('Testiraj:\n1. Vidi vrijeme (trebalo bi biti u 24-sats formatu)\n2. Uncheck "24-Hour Format"\n3. Vrijeme bi trebalo biti u 12-sats formatu');
+        }
+    </script>
+</body>
+</html>

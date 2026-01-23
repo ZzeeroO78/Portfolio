@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Time Zones - Debug Version</title>
+    <link rel="stylesheet" href="styles.css?v=7.6">
+    <style>
+        #debug-panel {
+            position: fixed;
+            top: 100px;
+            right: 10px;
+            width: 300px;
+            background: rgba(0,0,0,0.9);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #0f0;
+            padding: 10px;
+            z-index: 9999;
+        }
+        .debug-line { margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .debug-success { color: #0f0; }
+        .debug-error { color: #f00; }
+        .debug-info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div id="debug-panel"></div>
+    
+    <div class="container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <h1 class="nav-title">🌍 World Time Zones</h1>
+                <div class="nav-controls">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search cities...">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="weatherToggle" checked>
+                        <span>Weather</span>
+                    </label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" checked>
+                        <span>Dark Mode</span>
+                    </label>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div id="citiesGrid" class="cities-grid"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Create debug panel functionality
+        function addDebugLine(msg, type = 'info') {
+            const panel = document.getElementById('debug-panel');
+            const line = document.createElement('div');
+            line.className = `debug-line debug-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            panel.insertBefore(line, panel.firstChild);
+            if (panel.children.length > 50) {
+                panel.removeChild(panel.lastChild);
+            }
+        }
+
+        // Intercept all console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addDebugLine(args.join(' '), 'info');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addDebugLine(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addDebugLine(args.join(' '), 'info');
+        };
+
+        addDebugLine('Debug panel initialized', 'success');
+    </script>
+
+    <!-- Load the main script -->
+    <script src="script.js?v=7.6"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temperature Debug Console</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #0a0e27; color: #0f0; padding: 20px; overflow-x: hidden; }
+        #console { background: #000; border: 2px solid #0f0; border-radius: 8px; padding: 15px; min-height: 400px; max-height: 600px; overflow-y: auto; font-size: 12px; line-height: 1.5; }
+        .log { margin: 2px 0; padding: 2px 5px; }
+        .info { color: #0f0; }
+        .warn { color: #ff0; }
+        .error { color: #f00; }
+        button { margin: 10px 0; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #5568d3; }
+        #output { margin-top: 20px; padding: 10px; background: #1a1a1a; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🌍 Temperatura Debug Konzola</h1>
+    <div id="console"></div>
+    <div>
+        <button onclick="clearConsole()">Obriši konzolu</button>
+        <button onclick="loadPage()">Učitaj aplikaciju</button>
+    </div>
+    <div id="output"></div>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        const output = document.getElementById('output');
+        
+        // Presretni console.log
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(message, type = 'log') {
+            const entry = document.createElement('div');
+            entry.className = `log ${type}`;
+            entry.textContent = message;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            const msg = args.join(' ');
+            originalLog(msg);
+            addLog(msg, 'info');
+        };
+        
+        console.error = (...args) => {
+            const msg = args.join(' ');
+            originalError(msg);
+            addLog(msg, 'error');
+        };
+        
+        console.warn = (...args) => {
+            const msg = args.join(' ');
+            originalWarn(msg);
+            addLog(msg, 'warn');
+        };
+        
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+            output.innerHTML = '';
+        }
+        
+        function loadPage() {
+            output.innerHTML = '<p>Učitavanje aplikacije...</p>';
+            
+            fetch('http://localhost:8002/index.html')
+                .then(r => r.text())
+                .then(html => {
+                    // Učitaj HTML
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    
+                    // Učitaj CSS
+                    return fetch('http://localhost:8002/styles.css').then(r => r.text()).then(css => {
+                        const style = document.createElement('style');
+                        style.textContent = css;
+                        document.head.appendChild(style);
+                        
+                        // Učitaj JavaScript
+                        const script = document.createElement('script');
+                        script.src = 'http://localhost:8002/script.js?cache_bust=' + Date.now();
+                        script.onload = () => {
+                            output.innerHTML = '<p style="color: #0f0;">✅ Aplikacija učitana! Vidi ispise ispod.</p>';
+                        };
+                        script.onerror = () => {
+                            output.innerHTML = '<p style="color: #f00;">❌ Greška pri učitavanju script.js</p>';
+                        };
+                        document.head.appendChild(script);
+                    });
+                })
+                .catch(e => {
+                    output.innerHTML = `<p style="color: #f00;">❌ Greška: ${e.message}</p>`;
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Weather Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #111; color: #fff; }
+        .log { margin: 5px 0; padding: 5px; background: #222; border-left: 3px solid #666; }
+        .success { border-left-color: green; color: #afa; }
+        .error { border-left-color: red; color: #faa; }
+        .info { border-left-color: blue; color: #aaf; }
+        .card { border: 1px solid #666; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Update Weather Debug</h1>
+    <div id="logs"></div>
+    <div id="citiesGrid"></div>
+    
+    <script>
+        // Replicate the cities array from main script
+        const cities = [
+            { name: 'London', timezone: 'Europe/London' },
+            { name: 'New York', timezone: 'America/New_York' },
+            { name: 'Tokyo', timezone: 'Asia/Tokyo' },
+            { name: 'Paris', timezone: 'Europe/Paris' },
+            { name: 'Sydney', timezone: 'Australia/Sydney' },
+            { name: 'Dubai', timezone: 'Asia/Dubai' }
+        ];
+
+        const cityCoordinates = {
+            'london': { lat: 51.5074, lon: -0.1278 },
+            'new york': { lat: 40.7128, lon: -74.0060 },
+            'tokyo': { lat: 35.6762, lon: 139.6503 },
+            'paris': { lat: 48.8566, lon: 2.3522 },
+            'sydney': { lat: -33.8688, lon: 151.2093 },
+            'dubai': { lat: 25.2048, lon: 55.2708 }
+        };
+
+        const logsDiv = document.getElementById('logs');
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = msg;
+            logsDiv.appendChild(div);
+            console.log(msg);
+        }
+
+        // Fetch real weather from Open-Meteo API
+        async function fetchRealWeather(cityName) {
+            const coords = cityCoordinates[cityName.toLowerCase()];
+            if (!coords) {
+                log(`[FETCH] No coords for ${cityName}`, 'error');
+                return null;
+            }
+            
+            const baseUrl = 'https://api.open-meteo.com/v1/forecast?';
+            const params = 'latitude=' + coords.lat + '&longitude=' + coords.lon + '&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto';
+            const apiUrl = baseUrl + params;
+            
+            log(`[FETCH] Getting: ${cityName}...`, 'info');
+            
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch(apiUrl, { signal: controller.signal });
+                clearTimeout(timeout);
+                
+                if (!response.ok) {
+                    log(`[FETCH] ERROR ${response.status} for ${cityName}`, 'error');
+                    return null;
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.current) {
+                    const result = {
+                        temp: Math.round(data.current.temperature_2m),
+                        humidity: Math.round(data.current.relative_humidity_2m),
+                        weatherCode: data.current.weather_code,
+                        isDay: data.current.is_day
+                    };
+                    log(`[FETCH] SUCCESS ${cityName}: ${result.temp}°C`, 'success');
+                    return result;
+                }
+                log(`[FETCH] NO DATA for ${cityName}`, 'error');
+                return null;
+            } catch (error) {
+                log(`[FETCH] CATCH ${cityName}: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // Render cities
+        function renderCities() {
+            const grid = document.getElementById('citiesGrid');
+            grid.innerHTML = cities.map(city => `
+                <div class="card" data-city-name="${city.name}">
+                    <h3>${city.name}</h3>
+                    <div class="weather-temp">
+                        <span class="temp-value">⏳</span>
+                    </div>
+                    <div class="weather-humidity">
+                        <span class="humidity-value">⏳</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            log(`[RENDER] Rendered ${cities.length} cities`, 'success');
+            updateWeather();
+        }
+
+        // Update weather
+        async function updateWeather() {
+            log(`[UPDATE] Starting updateWeather()...`, 'info');
+            const cards = document.querySelectorAll('.city-card');
+            log(`[UPDATE] Found ${cards.length} city cards`, 'info');
+            
+            if (cards.length === 0) {
+                log(`[UPDATE] NO CARDS FOUND! Looking for .city-card...`, 'error');
+                // Try different selector
+                const allCards = document.querySelectorAll('[data-city-name]');
+                log(`[UPDATE] Found ${allCards.length} cards with data-city-name`, 'info');
+            }
+
+            const weatherPromises = [];
+            for (const card of cards) {
+                const cityName = card.getAttribute('data-city-name');
+                log(`[UPDATE] Processing card: ${cityName}`, 'info');
+                
+                if (!cityName) {
+                    log(`[UPDATE] ERROR: No city name in card`, 'error');
+                    continue;
+                }
+                
+                const city = cities.find(c => c.name === cityName);
+                if (!city) {
+                    log(`[UPDATE] ERROR: City ${cityName} not found in cities array`, 'error');
+                    continue;
+                }
+                
+                weatherPromises.push((async () => {
+                    const realWeather = await fetchRealWeather(city.name);
+                    log(`[UPDATE] Got weather for ${city.name}:`, realWeather ? 'success' : 'error');
+                    
+                    if (realWeather) {
+                        const tempSpan = card.querySelector('.temp-value');
+                        if (tempSpan) {
+                            tempSpan.textContent = `${realWeather.temp}°C`;
+                            log(`[UPDATE] Updated temp for ${city.name}: ${realWeather.temp}°C`, 'success');
+                        }
+                        
+                        const humiditySpan = card.querySelector('.humidity-value');
+                        if (humiditySpan) {
+                            humiditySpan.textContent = `${realWeather.humidity}%`;
+                            log(`[UPDATE] Updated humidity for ${city.name}: ${realWeather.humidity}%`, 'success');
+                        }
+                    }
+                })());
+            }
+            
+            await Promise.allSettled(weatherPromises);
+            log(`[UPDATE] All weather updates complete`, 'success');
+        }
+
+        // Initialize
+        log('[INIT] Starting...', 'info');
+        renderCities();
+    </script>
+</body>
+</html>

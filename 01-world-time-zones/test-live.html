@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Test</title>
+</head>
+<body>
+    <h1>🔍 Testiranje Live Linka</h1>
+    
+    <div id="status" style="padding: 20px; background: #f0f0f0; margin: 20px; border-radius: 5px;">
+        <p id="server-status">Čekam...</p>
+        <p id="script-status">Čekam...</p>
+        <p id="function-status">Čekam...</p>
+        <p id="cities-status">Čekam...</p>
+    </div>
+    
+    <h2>Stranica:</h2>
+    <iframe src="index.html" width="100%" height="800" style="border: 2px solid #667eea;"></iframe>
+    
+    <script>
+        // Test if main functions exist
+        setTimeout(() => {
+            const statusDiv = document.getElementById('status');
+            
+            // Check if script loaded
+            if (typeof getTimeForCity === 'function') {
+                document.getElementById('script-status').innerHTML = '✅ Script učitan';
+            } else {
+                document.getElementById('script-status').innerHTML = '❌ Script NIJE učitan!';
+            }
+            
+            // Check if cities array exists
+            if (typeof cities !== 'undefined') {
+                document.getElementById('cities-status').innerHTML = '✅ Cities array postoji (' + cities.length + ' gradova)';
+            } else {
+                document.getElementById('cities-status').innerHTML = '❌ Cities array NIJE dostupan!';
+            }
+            
+            // Check other functions
+            if (typeof renderCities === 'function') {
+                document.getElementById('function-status').innerHTML = '✅ renderCities funkcija postoji';
+            } else {
+                document.getElementById('function-status').innerHTML = '❌ renderCities NIJE dostupna!';
+            }
+            
+        }, 1000);
+    </script>
+</body>
+</html>

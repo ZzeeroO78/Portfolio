@@ -945,27 +945,7 @@ async function updateWeather() {
         }
     });
     
-    // Use Promise.allSettled with timeout to avoid waiting forever
-    try {
-        await Promise.race([
-            Promise.allSettled(weatherPromises),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
-        ]);
-    } catch (e) {
-        console.warn('Weather update timed out, using fallback values');
-        // Use fallback for any cards that still have loading spinner
-        cards.forEach(card => {
-            const tempSpan = card.querySelector('.weather-temp .temp-value');
-            if (tempSpan && tempSpan.textContent === '⏳') {
-                const cityName = card.getAttribute('data-city-name');
-                const city = cities.find(c => c.name === cityName);
-                if (city) {
-                    const fallback = getWeatherInfo(city.timezone, city.name);
-                    tempSpan.textContent = fallback.temp;
-                }
-            }
-        });
-    }
+    await Promise.all(weatherPromises);
 }
 function init() {
     loadSettings();
@@ -1005,36 +985,18 @@ function init() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Guard: only set up if DOM elements exist
-    const searchInput = document.getElementById('searchInput');
-    const sortBtn = document.getElementById('sortBtn');
-    const addCityBtn = document.getElementById('add-city-btn');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const confirmAddBtn = document.getElementById('confirmAddBtn');
-    const timeFormatBtn = document.getElementById('timeFormatBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const cityInput = document.getElementById('cityInput');
-    const showWeatherCheckbox = document.getElementById('showWeather');
-    const showSecondsCheckbox = document.getElementById('showSeconds');
-    const useFCheckbox = document.getElementById('useF');
-    
-    // Only add listeners if elements exist
-    if (searchInput) searchInput.addEventListener('input', debounce(filterCities, 300));
-    if (sortBtn) sortBtn.addEventListener('click', toggleSort);
-    if (addCityBtn) addCityBtn.addEventListener('click', openAddModal);
-    if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
-    if (darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
-    if (confirmAddBtn) confirmAddBtn.addEventListener('click', addCity);
-    if (timeFormatBtn) timeFormatBtn.addEventListener('click', toggleTimeFormat);
-    if (resetBtn) resetBtn.addEventListener('click', resetToDefault);
-    
-    if (cityInput) {
-        cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addCity();
-        });
-        cityInput.addEventListener('input', showSuggestions);
-    }
+    document.getElementById('searchInput').addEventListener('input', debounce(filterCities, 300));
+    document.getElementById('sortBtn').addEventListener('click', toggleSort);
+    document.getElementById('add-city-btn').addEventListener('click', openAddModal);
+    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+    document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
+    document.getElementById('confirmAddBtn').addEventListener('click', addCity);
+    document.getElementById('timeFormatBtn').addEventListener('click', toggleTimeFormat);
+    document.getElementById('resetBtn').addEventListener('click', resetToDefault);
+    document.getElementById('cityInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addCity();
+    });
+    document.getElementById('cityInput').addEventListener('input', showSuggestions);
     
     // Close modals
     document.querySelectorAll('.close').forEach(btn => {
@@ -1051,30 +1013,24 @@ function setupEventListeners() {
     });
     
     // Settings checkboxes
-    if (showWeatherCheckbox) {
-        showWeatherCheckbox.addEventListener('change', (e) => {
-            showWeather = e.target.checked;
-            saveSettings();
-            renderCities();
-            updateWeather();
-        });
-    }
+    document.getElementById('showWeather').addEventListener('change', (e) => {
+        showWeather = e.target.checked;
+        saveSettings();
+        renderCities();
+        updateWeather();
+    });
     
-    if (showSecondsCheckbox) {
-        showSecondsCheckbox.addEventListener('change', (e) => {
-            showSeconds = e.target.checked;
-            saveSettings();
-            updateTime();
-        });
-    }
+    document.getElementById('showSeconds').addEventListener('change', (e) => {
+        showSeconds = e.target.checked;
+        saveSettings();
+        updateTime();
+    });
     
-    if (useFCheckbox) {
-        useFCheckbox.addEventListener('change', (e) => {
-            useFahrenheit = e.target.checked;
-            saveSettings();
-            renderCities();
-        });
-    }
+    document.getElementById('useF').addEventListener('change', (e) => {
+        useFahrenheit = e.target.checked;
+        saveSettings();
+        renderCities();
+    });
 }
 
 // Debounce function
@@ -1226,11 +1182,7 @@ async function fetchRealWeather(cityName) {
         return null;
     }
     
-    const baseUrl = 'https://api.open-meteo.com/v1/forecast?';
-    const params = 'latitude=' + coords.lat + '&longitude=' + coords.lon + '&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto';
-    const apiUrl = baseUrl + params;
-    
-    console.log(`[DEBUG] Fetching ${cityName} from: ${apiUrl}`);
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
     
     try {
         const controller = new AbortController();
@@ -1239,15 +1191,12 @@ async function fetchRealWeather(cityName) {
         const response = await fetch(apiUrl, { signal: controller.signal });
         clearTimeout(timeout);
         
-        console.log(`[DEBUG] Response status for ${cityName}: ${response.status}`);
-        
         if (!response.ok) {
             console.error(`API error for ${cityName}: ${response.status}`);
             return null;
         }
         
         const data = await response.json();
-        console.log(`[DEBUG] API data for ${cityName}:`, data);
         
         if (data && data.current) {
             const result = {
@@ -1263,6 +1212,13 @@ async function fetchRealWeather(cityName) {
         return null;
     } catch (error) {
         console.error(`Fetch error for ${cityName}: ${error.message}`);
+        return null;
+    }
+}
+
+        }
+        return null;
+    } catch (error) {
         return null;
     }
 }
@@ -1379,10 +1335,7 @@ function getWeatherInfo(timezone, cityName) {
 // Render all cities
 function renderCities() {
     const grid = document.getElementById('citiesGrid');
-    if (!grid) return; // Guard: exit if grid doesn't exist
-    
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     
     let filteredCities = cities.filter(city => 
         city.name.toLowerCase().includes(searchTerm)
@@ -1397,8 +1350,8 @@ function renderCities() {
     } else {
         filteredCities.sort((a, b) => a.name.localeCompare(b.name));
     }
-    const cityCountEl = document.getElementById('cityCount');
-    if (cityCountEl) cityCountEl.textContent = cities.length;
+
+    document.getElementById('cityCount').textContent = cities.length;
 
     if (filteredCities.length === 0) {
         grid.innerHTML = `<div class="empty-state"><h2>📍 No cities</h2></div>`;
@@ -1449,6 +1402,70 @@ function renderCities() {
     if (showWeather) {
         updateWeather();
     }
+}
+
+
+    // Update city count
+    document.getElementById('cityCount').textContent = cities.length;
+
+    if (filteredCities.length === 0) {
+        grid.innerHTML = `<div class="empty-state">
+            <h2>📍 No cities found</h2>
+            <p>Add a city or adjust your search</p>
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML = filteredCities.map(city => {
+        const time = getTimeForCity(city.timezone);
+        const date = getDateForCity(city.timezone);
+        const dayTime = isDayTime(city.timezone);
+        const period = dayTime ? 'day' : 'night';
+        const periodText = dayTime ? '☀️ Day' : '🌙 Night';
+        
+        let weatherHTML = '';
+        if (showWeather) {
+            const weather = getWeatherInfo(city.timezone, city.name);
+            const seasonIcons = {
+                'winter': '❄️',
+                'spring': '🌸',
+                'summer': '🌞',
+                'autumn': '🍂'
+            };
+            const seasonIcon = seasonIcons[weather.season] || '📅';
+            
+            weatherHTML = `
+                <div class="city-weather" data-city-name="${city.name}">
+                    <div class="weather-item weather-temp" data-city="${city.name}">
+                        <span class="weather-icon">🌡️</span>
+                        <span>${weather.temp}</span>
+                    </div>
+                    <div class="weather-item weather-humidity" data-city="${city.name}">
+                        <span class="weather-icon">💧</span>
+                        <span>${weather.humidity}% Humidity</span>
+                    </div>
+                    <div class="weather-item weather-season" data-city="${city.name}">
+                        <span class="weather-icon">${seasonIcon}</span>
+                        <span>${weather.season.charAt(0).toUpperCase() + weather.season.slice(1)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="city-card">
+                <div class="city-header">
+                    <div class="city-name">${city.name}</div>
+                    <button class="remove-btn" onclick="removeCity('${city.name}')">✕</button>
+                </div>
+                <div class="city-time">${time}</div>
+                <div class="city-timezone">${city.timezone}</div>
+                <div class="city-date">${date}</div>
+                ${weatherHTML}
+                <span class="time-period ${period}">${periodText}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 // Update time display

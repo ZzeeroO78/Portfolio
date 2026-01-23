@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Weather System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 30px; }
+        .test-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-section h2 { color: #667eea; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        button { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px 5px 5px 0; }
+        button:hover { background: #5568d3; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+        .success { border-left: 4px solid #4caf50; color: #2e7d32; }
+        .error { border-left: 4px solid #f44336; color: #c62828; }
+        .warning { border-left: 4px solid #ff9800; color: #e65100; }
+        .app-container { border: 2px solid #667eea; border-radius: 8px; overflow: hidden; }
+        .app-container iframe { width: 100%; height: 600px; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌡️ Weather System Test</h1>
+        
+        <!-- Test 1: API Direct -->
+        <div class="test-section">
+            <h2>1️⃣ Test API (Open-Meteo)</h2>
+            <button onclick="testAPIDirectly()">Test API</button>
+            <div id="apiResults"></div>
+        </div>
+        
+        <!-- Test 2: Load App -->
+        <div class="test-section">
+            <h2>2️⃣ Load Application</h2>
+            <button onclick="loadApplication()">Load App in Iframe</button>
+            <div class="app-container" id="appContainer" style="display: none;"></div>
+        </div>
+        
+        <!-- Test 3: Debug Info -->
+        <div class="test-section">
+            <h2>3️⃣ Debug Information</h2>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function testAPIDirectly() {
+            const results = document.getElementById('apiResults');
+            results.innerHTML = '<div class="result warning">Testing...</div>';
+            
+            const cities = [
+                { name: 'London', lat: 51.5074, lon: -0.1278 },
+                { name: 'New York', lat: 40.7128, lon: -74.0060 },
+                { name: 'Tokyo', lat: 35.6762, lon: 139.6503 }
+            ];
+            
+            let html = '';
+            
+            for (const city of cities) {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
+                
+                try {
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    
+                    if (data.current) {
+                        const temp = Math.round(data.current.temperature_2m * 10) / 10;
+                        const humidity = data.current.relative_humidity_2m;
+                        html += `<div class="result success">✅ <strong>${city.name}</strong>: ${temp}°C, ${humidity}% humidity</div>`;
+                    } else {
+                        html += `<div class="result error">❌ <strong>${city.name}</strong>: No data in response</div>`;
+                    }
+                } catch (e) {
+                    html += `<div class="result error">❌ <strong>${city.name}</strong>: ${e.message}</div>`;
+                }
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        function loadApplication() {
+            const container = document.getElementById('appContainer');
+            container.style.display = 'block';
+            container.innerHTML = '<iframe src="http://localhost:8002/index.html"></iframe>';
+        }
+        
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            let html = '<div class="result info">';
+            html += '<strong>Environment Info:</strong><br>';
+            html += `Server: http://localhost:8002<br>`;
+            html += `Time: ${new Date().toLocaleString()}<br>`;
+            html += `Browser: ${navigator.userAgent.substring(0, 50)}...<br>`;
+            html += '</div>';
+            
+            html += '<div class="result warning"><strong>What to check:</strong><br>';
+            html += '1. Open F12 console (Cmd+Option+I)<br>';
+            html += '2. Look for messages starting with 🌐 or ✅<br>';
+            html += '3. Check if temperatures update after a few seconds<br>';
+            html += '</div>';
+            
+            debugDiv.innerHTML = html;
+        }
+        
+        window.addEventListener('load', () => {
+            testAPIDirectly();
+        });
+    </script>
+</body>
+</html>

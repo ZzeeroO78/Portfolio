@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Test - Temperatures</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .city-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .city-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .city-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .weather-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .weather-icon {
+            font-size: 1.8em;
+            margin-right: 10px;
+            min-width: 30px;
+        }
+        .temp-value {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+        .humidity-value {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        .season-value {
+            color: #95e1d3;
+            font-weight: bold;
+        }
+        .loading {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 World Time Zones - Temperature Display Test</h1>
+        <div class="cities-grid" id="citiesGrid"></div>
+    </div>
+
+    <script>
+        const cityCoordinates = {
+            'london': { lat: 51.5074, lon: -0.1278 },
+            'new york': { lat: 40.7128, lon: -74.0060 },
+            'tokyo': { lat: 35.6762, lon: 139.6503 },
+            'paris': { lat: 48.8566, lon: 2.3522 },
+            'sydney': { lat: -33.8688, lon: 151.2093 },
+            'dubai': { lat: 25.2048, lon: 55.2708 }
+        };
+
+        const cities = [
+            { name: 'London', timezone: 'Europe/London' },
+            { name: 'New York', timezone: 'America/New_York' },
+            { name: 'Tokyo', timezone: 'Asia/Tokyo' },
+            { name: 'Paris', timezone: 'Europe/Paris' },
+            { name: 'Sydney', timezone: 'Australia/Sydney' },
+            { name: 'Dubai', timezone: 'Asia/Dubai' }
+        ];
+
+        function getSeason(timezone) {
+            const now = new Date();
+            const month = now.getMonth();
+            const southernHemisphere = timezone.includes('Australia') || 
+                                        timezone.includes('Pacific') || 
+                                        (timezone.includes('America/Argentina') || 
+                                         timezone.includes('America/Sao_Paulo'));
+            
+            let season;
+            if (southernHemisphere) {
+                if (month >= 11 || month <= 1) season = 'summer';
+                else if (month >= 2 && month <= 4) season = 'autumn';
+                else if (month >= 5 && month <= 7) season = 'winter';
+                else season = 'spring';
+            } else {
+                if (month >= 11 || month <= 1) season = 'winter';
+                else if (month >= 2 && month <= 4) season = 'spring';
+                else if (month >= 5 && month <= 7) season = 'summer';
+                else season = 'autumn';
+            }
+            return season;
+        }
+
+        async function fetchRealWeather(cityName) {
+            const coords = cityCoordinates[cityName.toLowerCase()];
+            if (!coords) {
+                console.log(`No coords for: ${cityName}`);
+                return null;
+            }
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
+
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 15000);
+
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeout);
+
+                if (!response.ok) {
+                    console.error(`Error ${response.status} for ${cityName}`);
+                    return null;
+                }
+
+                const data = await response.json();
+                if (data && data.current) {
+                    return {
+                        temp: Math.round(data.current.temperature_2m),
+                        humidity: Math.round(data.current.relative_humidity_2m),
+                        season: getSeason(cities.find(c => c.name === cityName).timezone)
+                    };
+                }
+            } catch (e) {
+                console.error(`Fetch error for ${cityName}: ${e.message}`);
+            }
+            return null;
+        }
+
+        async function init() {
+            const grid = document.getElementById('citiesGrid');
+
+            for (const city of cities) {
+                const card = document.createElement('div');
+                card.className = 'city-card';
+                card.innerHTML = `
+                    <div class="city-name">${city.name}</div>
+                    <div class="weather-item">
+                        <span class="weather-icon">🌡️</span>
+                        <span class="temp-value loading">Loading...</span>
+                    </div>
+                    <div class="weather-item">
+                        <span class="weather-icon">💧</span>
+                        <span class="humidity-value loading">Loading...</span>
+                    </div>
+                    <div class="weather-item">
+                        <span class="weather-icon">📅</span>
+                        <span class="season-value loading">Loading...</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // Fetch weather
+                const weather = await fetchRealWeather(city.name);
+
+                if (weather) {
+                    card.querySelector('.temp-value').textContent = `${weather.temp}°C`;
+                    card.querySelector('.temp-value').className = 'temp-value';
+                    
+                    card.querySelector('.humidity-value').textContent = `${weather.humidity}% Humidity`;
+                    card.querySelector('.humidity-value').className = 'humidity-value';
+                    
+                    card.querySelector('.season-value').textContent = weather.season.charAt(0).toUpperCase() + weather.season.slice(1);
+                    card.querySelector('.season-value').className = 'season-value';
+                } else {
+                    card.querySelector('.temp-value').textContent = '❌ API Error';
+                    card.querySelector('.humidity-value').textContent = '❌ Failed';
+                    card.querySelector('.season-value').textContent = '❌ Failed';
+                }
+
+                // Add delay between requests to avoid overwhelming the API
+                await new Promise(r => setTimeout(r, 500));
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

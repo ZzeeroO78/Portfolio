@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Debug Test</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #fff; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; background: #222; border: 1px solid #666; }
+        .city-result { margin: 10px 0; padding: 10px; background: #333; }
+        .success { border-left: 3px solid #0f0; color: #0f0; }
+        .error { border-left: 3px solid #f00; color: #f00; }
+        .info { border-left: 3px solid #0ff; color: #0ff; }
+    </style>
+</head>
+<body>
+    <h1>Complete Weather Update Test</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Verify cityCoordinates</h2>
+        <div id="step1"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 2: Test API Fetch</h2>
+        <div id="step2"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 3: Simulate updateWeather()</h2>
+        <div id="step3"></div>
+    </div>
+
+    <script>
+        function log(containerId, msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `city-result ${type}`;
+            div.textContent = msg;
+            document.getElementById(containerId).appendChild(div);
+        }
+
+        // Include all necessary definitions
+        const cityCoordinates = {
+            'london': { lat: 51.5074, lon: -0.1278 },
+            'new york': { lat: 40.7128, lon: -74.0060 },
+            'tokyo': { lat: 35.6762, lon: 139.6503 },
+            'paris': { lat: 48.8566, lon: 2.3522 },
+            'sydney': { lat: -33.8688, lon: 151.2093 },
+            'dubai': { lat: 25.2048, lon: 55.2708 }
+        };
+
+        const defaultCities = [
+            { name: 'London', timezone: 'Europe/London' },
+            { name: 'New York', timezone: 'America/New_York' },
+            { name: 'Tokyo', timezone: 'Asia/Tokyo' },
+            { name: 'Paris', timezone: 'Europe/Paris' },
+            { name: 'Sydney', timezone: 'Australia/Sydney' },
+            { name: 'Dubai', timezone: 'Asia/Dubai' }
+        ];
+
+        // Step 1: Verify coordinates
+        log('step1', '═══════════════════════════════════════', 'info');
+        log('step1', 'Checking cityCoordinates object...', 'info');
+        let coordSuccess = 0;
+        for (const city of defaultCities) {
+            const coords = cityCoordinates[city.name.toLowerCase()];
+            if (coords) {
+                log('step1', `✓ ${city.name}: lat=${coords.lat}, lon=${coords.lon}`, 'success');
+                coordSuccess++;
+            } else {
+                log('step1', `✗ ${city.name}: MISSING`, 'error');
+            }
+        }
+        log('step1', `Result: ${coordSuccess}/${defaultCities.length} cities found`, coordSuccess === defaultCities.length ? 'success' : 'error');
+
+        // Step 2: Test API fetch
+        log('step2', '═══════════════════════════════════════', 'info');
+        log('step2', 'Testing API fetch for first 2 cities...', 'info');
+
+        async function testAPIFetch() {
+            const testCities = [defaultCities[0], defaultCities[1]];
+            
+            for (const city of testCities) {
+                log('step2', `\nTesting ${city.name}...`, 'info');
+                const coords = cityCoordinates[city.name.toLowerCase()];
+                
+                try {
+                    const baseUrl = 'https://api.open-meteo.com/v1/forecast?';
+                    const params = `latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,is_day&timezone=auto`;
+                    const apiUrl = baseUrl + params;
+                    
+                    log('step2', `URL: ${apiUrl.substring(0, 60)}...`, 'info');
+                    
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 8000);
+                    
+                    const response = await fetch(apiUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    
+                    log('step2', `Status: ${response.status}`, response.status === 200 ? 'success' : 'error');
+                    
+                    const data = await response.json();
+                    if (data && data.current) {
+                        const temp = Math.round(data.current.temperature_2m);
+                        const humidity = Math.round(data.current.relative_humidity_2m);
+                        log('step2', `✓ Temperature: ${temp}°C, Humidity: ${humidity}%`, 'success');
+                    } else {
+                        log('step2', `✗ No current data in response`, 'error');
+                    }
+                } catch (e) {
+                    log('step2', `✗ Error: ${e.message}`, 'error');
+                }
+            }
+        }
+
+        // Step 3: Simulate the updateWeather function
+        function step3() {
+            log('step3', '═══════════════════════════════════════', 'info');
+            log('step3', 'Creating mock DOM structure...', 'info');
+            
+            // Create mock HTML structure
+            const grid = document.createElement('div');
+            grid.id = 'citiesGrid';
+            
+            for (const city of defaultCities.slice(0, 3)) {
+                const card = document.createElement('div');
+                card.className = 'city-card';
+                card.setAttribute('data-city-name', city.name);
+                card.innerHTML = `
+                    <div class="city-name">${city.name}</div>
+                    <div class="city-weather" data-city-name="${city.name}">
+                        <div class="weather-item weather-temp">
+                            <span class="weather-icon">🌡️</span>
+                            <span class="temp-value">⏳</span>
+                        </div>
+                        <div class="weather-item weather-humidity">
+                            <span class="weather-icon">💧</span>
+                            <span class="humidity-value">⏳</span>
+                        </div>
+                        <div class="weather-item weather-season">
+                            <span class="weather-icon">📅</span>
+                            <span class="season-value">-</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+            
+            log('step3', `✓ Created mock structure with ${defaultCities.slice(0, 3).length} cities`, 'success');
+            
+            // Try querySelector tests
+            const cards = grid.querySelectorAll('.city-card');
+            log('step3', `Found ${cards.length} cards with querySelectorAll`, 'success');
+            
+            cards.forEach(card => {
+                const cityName = card.getAttribute('data-city-name');
+                log('step3', `Card "${cityName}" - queries test:`, 'info');
+                
+                const tempSpan = card.querySelector('.weather-temp .temp-value');
+                const humiditySpan = card.querySelector('.weather-humidity .humidity-value');
+                const seasonSpan = card.querySelector('.weather-season .season-value');
+                
+                if (tempSpan && humiditySpan && seasonSpan) {
+                    log('step3', `  ✓ All spans found`, 'success');
+                    tempSpan.textContent = '10°C';
+                    humiditySpan.textContent = '75% Humidity';
+                    seasonSpan.textContent = 'Winter';
+                    log('step3', `  ✓ Updated with test values`, 'success');
+                } else {
+                    log('step3', `  ✗ Missing spans!`, 'error');
+                }
+            });
+        }
+
+        // Run tests
+        testAPIFetch().then(() => {
+            step3();
+            log('step1', '\n═══════════════════════════════════════', 'info');
+            log('step1', 'All tests completed!', 'success');
+        });
+    </script>
+</body>
+</html>

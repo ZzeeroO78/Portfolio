@@ -743,3 +743,161 @@ header h2 {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ========== TOAST NOTIFICATIONS ========== */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 16px 24px;
+    background: #333;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    max-width: 300px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-success {
+    background: #4caf50;
+    color: white;
+}
+
+.toast-error {
+    background: #f44336;
+    color: white;
+}
+
+.toast-warning {
+    background: #ff9800;
+    color: white;
+}
+
+.toast-info {
+    background: #2196F3;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .toast {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+    }
+}
+
+/* ========== SORT MENU ========== */
+.sort-menu {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sort-btn {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background: var(--secondary-bg);
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.sort-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--secondary-color);
+    font-weight: 600;
+}
+
+/* ========== CITY CARD HOVER IMPROVEMENTS ========== */
+.city-card {
+    cursor: default;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.city-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.city-card:hover::before {
+    left: 100%;
+}
+
+.city-time {
+    cursor: pointer !important;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.city-time:hover {
+    color: var(--primary-color);
+    transform: scale(1.02);
+}
+
+.city-gmt {
+    font-size: 0.85em;
+    color: var(--text-light);
+    margin-top: 4px;
+}
+
+.city-info {
+    flex: 1;
+}
+
+/* ========== IMPROVED EMPTY STATE ========== */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.empty-state h2 {
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.95em;
+}
+
+/* ========== KEYBOARD SHORTCUTS HINT ========== */
+.keyboard-hint {
+    font-size: 0.75em;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+    .sort-menu {
+        display: none;
+    }
+}

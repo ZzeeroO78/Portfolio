@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+    <meta charset="UTF-8">
+    <title>🌍 Test - Sve Stranice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 40px; font-size: 36px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 10px; padding: 30px; text-align: center; transition: transform 0.3s, box-shadow 0.3s; border: 1px solid rgba(255,255,255,0.2); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .card h2 { margin-bottom: 15px; font-size: 22px; }
+        .card p { margin-bottom: 20px; font-size: 14px; opacity: 0.9; }
+        .card a { display: inline-block; background: #667eea; color: white; padding: 12px 30px; border-radius: 5px; text-decoration: none; transition: background 0.3s; }
+        .card a:hover { background: #5568d3; }
+        .info { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #ffeb3b; }
+        .info h3 { margin-bottom: 10px; color: #ffeb3b; }
+        .status { display: inline-block; padding: 8px 15px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; }
+        .status-run { background: #4caf50; color: white; }
+        .status-test { background: #2196F3; color: white; }
+        .status-debug { background: #ff9800; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Temperatura - Test Panel</h1>
+        
+        <div class="info">
+            <h3>ℹ️ Upute:</h3>
+            <p>
+                1. <strong>Glavna Aplikacija</strong> - Otvori aplikaciju sa vremenom i temperaturom<br>
+                2. <strong>API Test</strong> - Testiraj direktno da li API vraća točne temperature<br>
+                3. <strong>Debug Temperatura</strong> - Komprehenzivni debug panel sa svim informacijama<br>
+                4. <strong>Konzola Ispisa</strong> - Vidi što se dešava u konzoli JavaScript-a
+            </p>
+        </div>
+        
+        <div class="grid">
+            <!-- Glavna Aplikacija -->
+            <div class="card">
+                <span class="status status-run">🚀 Pokreni</span>
+                <h2>🌍 Glavna Aplikacija</h2>
+                <p>Aplikacija sa vremenom i temperaturom za 6 gradova</p>
+                <a href="http://localhost:8002/index.html" target="_blank">Otvori Aplikaciju →</a>
+            </div>
+            
+            <!-- Direktni API Test -->
+            <div class="card">
+                <span class="status status-test">🧪 Test</span>
+                <h2>📡 API Test</h2>
+                <p>Direktan test Open-Meteo API-ja za sve gradove</p>
+                <a href="http://localhost:8002/test-api-direct.html" target="_blank">Testiraj API →</a>
+            </div>
+            
+            <!-- Debug Temperatura -->
+            <div class="card">
+                <span class="status status-debug">🔍 Debug</span>
+                <h2>🔧 Debug Temperatura</h2>
+                <p>Kompletan debug panel sa svim informacijama</p>
+                <a href="http://localhost:8002/debug-temperatura.html" target="_blank">Otvori Debug →</a>
+            </div>
+            
+            <!-- Temperatura Test -->
+            <div class="card">
+                <span class="status status-test">🧪 Test</span>
+                <h2>🌡️ Test Temperatura</h2>
+                <p>Testiraj temperature sa validacijom</p>
+                <a href="http://localhost:8002/test-temp.html" target="_blank">Testiraj Temp →</a>
+            </div>
+            
+            <!-- Konzola -->
+            <div class="card">
+                <span class="status status-debug">🔍 Debug</span>
+                <h2>🖥️ Konzola Ispisa</h2>
+                <p>Vidi sve JavaScript console ispise</p>
+                <a href="http://localhost:8002/test-console.html" target="_blank">Otvori Konzolu →</a>
+            </div>
+            
+            <!-- Ovaj Panel -->
+            <div class="card">
+                <span class="status" style="background: #9c27b0;">📋 Info</span>
+                <h2>�� Ovaj Panel</h2>
+                <p>Pregled svih test stranica</p>
+                <a href="http://localhost:8002/testa-sve.html" target="_blank">Osvježi Panel →</a>
+            </div>
+        </div>
+        
+        <div class="info" style="margin-top: 30px;">
+            <h3>🔧 Što trebam da uradim:</h3>
+            <p>
+                1. Otvori <strong>API Test</strong> i provjeri da li svi gradovi vraćaju točne temperature<br>
+                2. Ako API vraća točne temperature, otvori <strong>Glavnu Aplikaciju</strong> i provjeri temperaturu<br>
+                3. Ako temperatura nije točna u aplikaciji, otvori <strong>Debug Temperatura</strong> panel<br>
+                4. U browser konzoli (F12) trebaš vidjeti debug ispise koji objašnjavaju što se dešava
+            </p>
+        </div>
+    </div>
+</body>
+</html>

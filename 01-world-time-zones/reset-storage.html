@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset localStorage</title>
+    <style>
+        body { font-family: Arial; padding: 40px; text-align: center; background: #f5f5f5; }
+        .box { background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        button { padding: 15px 30px; font-size: 18px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #5568d3; }
+        .status { margin-top: 20px; font-size: 16px; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🧹 Očisti localStorage</h1>
+        <p>Klikni dugme ispod da očistiš stare podatke i ponovo učitaš 20 defaultnih gradova.</p>
+        
+        <button onclick="resetStorage()">RESET localStorage</button>
+        
+        <div id="status" class="status"></div>
+    </div>
+    
+    <script>
+        function resetStorage() {
+            try {
+                // Clear old data
+                localStorage.removeItem('worldTimeCities');
+                localStorage.removeItem('worldTimeSettings');
+                console.log('✅ localStorage očišćen');
+                
+                // Reload page
+                document.getElementById('status').innerHTML = '<p class="success">✅ localStorage očišćen! Učitavam novu stranicu...</p>';
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (e) {
+                document.getElementById('status').innerHTML = '<p class="error">❌ Greška: ' + e.message + '</p>';
+            }
+        }
+        
+        // Show current data
+        const stored = localStorage.getItem('worldTimeCities');
+        if (stored) {
+            try {
+                const cities = JSON.parse(stored);
+                document.querySelector('.box').innerHTML += '<p><small>Trenutno u storage-u: <strong>' + cities.length + ' gradova</strong></small></p>';
+            } catch (e) {
+                console.log('Parse error');
+            }
+        }
+    </script>
+</body>
+</html>

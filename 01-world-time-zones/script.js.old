@@ -942,6 +942,19 @@ async function updateWeather() {
             if (tempSpan) {
                 tempSpan.textContent = fallback.temp;
             }
+            const humiditySpan = card.querySelector('.weather-humidity .humidity-value');
+            if (humiditySpan) {
+                humiditySpan.textContent = `${fallback.humidity}% Humidity`;
+            }
+            const seasonSpan = card.querySelector('.weather-season .season-value');
+            if (seasonSpan) {
+                seasonSpan.textContent = fallback.season;
+            }
+            const seasonIcon = card.querySelector('.weather-season .weather-icon');
+            if (seasonIcon) {
+                const seasonIcons = {'winter': '❄️', 'spring': '🌸', 'summer': '🌞', 'autumn': '🍂'};
+                seasonIcon.textContent = seasonIcons[fallback.season] || '📅';
+            }
         }
     });
     
@@ -1234,7 +1247,7 @@ async function fetchRealWeather(cityName) {
     
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
+        const timeout = setTimeout(() => controller.abort(), 15000);
         
         const response = await fetch(apiUrl, { signal: controller.signal });
         clearTimeout(timeout);
@@ -1447,7 +1460,8 @@ function renderCities() {
     }).join('');
     
     if (showWeather) {
-        updateWeather();
+        // Use setTimeout to ensure DOM is updated before fetching weather
+        setTimeout(() => updateWeather(), 100);
     }
 }
 

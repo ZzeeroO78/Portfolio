@@ -1,0 +1,77 @@
+✅ WORLD TIME ZONES - VERIFICATION CHECKLIST
+
+╔═══════════════════════════════════════════════════════════════╗
+║               FUNKCIONALNOSTI ZA TESTIRANJE                    ║
+╚═══════════════════════════════════════════════════════════════╝
+
+1. ⏰ PRIKAZ VREMENA
+   ✓ Provjerite da li se vrijeme ažurira svakih pola sekunde
+   ✓ Provjerite da li je vrijeme ispravno za različite vremenske zone
+   ✓ Provjerite format (trebalo bi 24-satsni format po defaultu)
+
+2. 🌃 DAY/NIGHT INDIKATOR
+   ✓ Provjerite da li se prikazuje ☀️ za dan (6:00-18:00)
+   ✓ Provjerite da li se prikazuje 🌙 za noć (18:00-6:00)
+
+3. 🔍 SEARCH FUNKCIONALNOST
+   ✓ Unesite "London" - trebao bi viditi samo London
+   ✓ Obriši tekst - trebali bi viditi sve gradove
+   ✓ Unesite "New" - trebao bi viditi samo New York
+   ✓ Pretraga treba biti case-insensitive
+
+4. ➕ DODAVANJE GRADA
+   ✓ Unesite "Tokyo" u "Add City" polje
+   ✓ Pritisnite Enter ili klikni "Add" dugme
+   ✓ Tokyo bi trebao biti dodan (ako nije već dodan)
+   ✓ Čekiraj da li je grad spreman u listi
+
+5. ❌ BRISANJE GRADA
+   ✓ Klikni ✕ dugme na bilo kom gradu
+   ✓ Grad bi trebao biti obrisan iz prikaza
+   ✓ Refresh stranicu - grad bi trebao ostati obrisan
+
+6. 🕐 FORMAT VREMENA
+   ✓ Default je 24-satsni format (13:30)
+   ✓ Uncheck "24-Hour Format" - trebalo bi biti 12-satsni format (1:30 PM)
+   ✓ Refresh stranicu - format bi trebao ostati
+
+7. ⏱️ PRIKAZ SEKUNDI
+   ✓ Default je sa sekundama (13:30:45)
+   ✓ Uncheck "Show Seconds" - trebalo bi biti (13:30)
+   ✓ Refresh stranicu - opcija bi trebala ostati
+
+8. 🌙 DARK MODE
+   ✓ Check "Dark Mode" - stranica bi trebala biti tamnija
+   ✓ Tekst bi trebao biti jasniji na tamnoj pozadini
+   ✓ Refresh stranicu - Dark Mode bi trebao ostati uključen
+   ✓ Uncheck - stranica bi trebala biti u light modu
+
+9. 🔄 RESET DUGME
+   ✓ Ako ste izbrisali neke gradove, klikni "Reset Cities"
+   ✓ Trebalo bi pojaviti se pitanje za potvrdu
+   ✓ Trebali bi se vratiti svi default gradovi (20)
+
+10. 💾 PERSISTENCE (MEMORIJA)
+    ✓ Dodajte/uklonite gradove
+    ✓ Promijeni postavke (format, dark mode, itd)
+    ✓ Refresh stranicu (Ctrl+R ili Cmd+R)
+    ✓ Sve trebalo bi ostati isto
+
+11. 📱 RESPONSIVE DESIGN
+    ✓ Rezinizi browser prozor
+    ✓ Stranica bi trebala biti čitljiva na manjim ekranima
+    ✓ City cards bi trebale biti u red
+
+12. 📅 DATUM PRIKAZ
+    ✓ Svaki grad bi trebao prikazivati svoj datum
+    ✓ Provjerite da li je datum ispravna za svaku vremensku zonu
+
+═══════════════════════════════════════════════════════════════
+
+KAKO TESTIRATI:
+1. Otvori http://localhost:8001
+2. Otvori Developer Console (F12) - trebalo bi biti bez grešaka
+3. Testiraj svaku funkcionalnost iz liste iznad
+4. Za GitHub Pages - otvori https://zzeeroo78.github.io/Portfolio/01-world-time-zones/
+
+═══════════════════════════════════════════════════════════════

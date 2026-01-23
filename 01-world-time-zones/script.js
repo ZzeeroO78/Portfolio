@@ -1,11 +1,17 @@
 // ============================================
-// World Time Zones - CLEAN VERSION (Time Only)
+// World Time Zones - OPTIMIZED VERSION v9.0
 // ============================================
 
-let cities = [];
-let use24HourFormat = true;
-let showSeconds = true;
-let darkMode = false;
+// State Management
+const state = {
+    cities: [],
+    use24HourFormat: true,
+    showSeconds: true,
+    darkMode: false,
+    sortBy: 'default', // default, alphabetical, timezone
+    searchTerm: '',
+    lastUpdateTime: 0
+};
 
 const defaultCities = [
     { name: 'London', timezone: 'Europe/London' },
@@ -30,28 +36,54 @@ const defaultCities = [
     { name: 'Vancouver', timezone: 'America/Vancouver' }
 ];
 
-// Get time for a specific timezone
+// ========== UTILITY FUNCTIONS ==========
+
+// Toast notification system
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// Debounce helper for search
+function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+// Get time for city
 function getTimeForCity(timezone) {
     const date = new Date();
     const options = {
         timeZone: timezone,
         hour: '2-digit',
         minute: '2-digit',
-        second: showSeconds ? '2-digit' : undefined,
-        hour12: !use24HourFormat
+        second: state.showSeconds ? '2-digit' : undefined,
+        hour12: !state.use24HourFormat
     };
     return date.toLocaleString('en-US', options);
 }
 
-// Get date for a specific timezone
+// Get date for city
 function getDateForCity(timezone) {
     const date = new Date();
     const options = {
         timeZone: timezone,
         weekday: 'short',
         month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        day: 'numeric'
     };
     return date.toLocaleString('en-US', options);
 }
@@ -68,6 +100,45 @@ function isDayTime(timezone) {
     return hour >= 6 && hour < 18;
 }
 
+// Get GMT offset
+function getGMTOffset(timezone) {
+    const date = new Date();
+    const utcTime = date.toLocaleString('en-US', { timeZone: 'UTC' });
+    const localTime = date.toLocaleString('en-US', { timeZone: timezone });
+    
+    const utcDate = new Date(utcTime);
+    const localDate = new Date(localTime);
+    const diff = (localDate - utcDate) / (1000 * 60 * 60);
+    
+    const sign = diff >= 0 ? '+' : '';
+    return `GMT${sign}${diff % 1 === 0 ? diff : diff.toFixed(1)}`;
+}
+
+// Copy to clipboard
+function copyToClipboard(text, cityName) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`⏱️ Time for ${cityName} copied!`, 'success', 2000);
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+// ========== CITY MANAGEMENT ==========
+
+// Sort cities based on current sort mode
+function getSortedCities(citiesToSort) {
+    const sorted = [...citiesToSort];
+    
+    switch(state.sortBy) {
+        case 'alphabetical':
+            return sorted.sort((a, b) => a.name.localeCompare(b.name));
+        case 'timezone':
+            return sorted.sort((a, b) => a.timezone.localeCompare(b.timezone));
+        default:
+            return sorted;
+    }
+}
+
 // Render all cities
 function renderCities() {
     const grid = document.getElementById('citiesGrid');
@@ -76,34 +147,47 @@ function renderCities() {
     // Update city count
     const cityCountElement = document.getElementById('cityCount');
     if (cityCountElement) {
-        cityCountElement.textContent = cities.length;
+        cityCountElement.textContent = state.cities.length;
     }
 
     const searchInput = document.getElementById('searchInput');
     const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
-    const filteredCities = cities.filter(city =>
+    const filteredCities = state.cities.filter(city =>
         city.name.toLowerCase().includes(searchTerm)
     );
 
-    if (filteredCities.length === 0) {
-        grid.innerHTML = `<div class="empty-state"><h2>📍 No cities found</h2></div>`;
+    const sortedCities = getSortedCities(filteredCities);
+
+    if (sortedCities.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <h2>📍 No cities found</h2>
+                <p>Try searching for a different city or add one from the list</p>
+            </div>
+        `;
         return;
     }
 
-    grid.innerHTML = filteredCities.map(city => {
+    grid.innerHTML = sortedCities.map(city => {
         const time = getTimeForCity(city.timezone);
         const date = getDateForCity(city.timezone);
         const dayTime = isDayTime(city.timezone);
         const periodText = dayTime ? '☀️ Day' : '🌙 Night';
+        const gmt = getGMTOffset(city.timezone);
 
         return `
             <div class="city-card" data-city-name="${city.name}">
                 <div class="city-header">
-                    <div class="city-name">${city.name}</div>
-                    <button class="remove-btn" onclick="removeCity('${city.name}')">✕</button>
+                    <div class="city-info">
+                        <div class="city-name">${city.name}</div>
+                        <div class="city-gmt">${gmt}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeCity('${city.name}')" 
+                            aria-label="Remove ${city.name}" title="Remove ${city.name}">✕</button>
                 </div>
-                <div class="city-time">${time}</div>
+                <div class="city-time" title="Click to copy" style="cursor: pointer;" 
+                     onclick="copyToClipboard('${time}', '${city.name}')">${time}</div>
                 <div class="city-timezone">${city.timezone}</div>
                 <div class="city-date">${date}</div>
                 <span class="time-period ${dayTime ? 'day' : 'night'}">${periodText}</span>
@@ -112,15 +196,19 @@ function renderCities() {
     }).join('');
 }
 
-// Update time display
+// Update time display efficiently
 function updateTime() {
+    const now = Date.now();
+    if (now - state.lastUpdateTime < 490) return; // Skip if less than 490ms
+    
+    state.lastUpdateTime = now;
+    
     const cards = document.querySelectorAll('.city-card');
     cards.forEach((card) => {
-        const cityName = card.querySelector('.city-name');
+        const cityName = card.querySelector('.city-name')?.textContent.trim();
         if (!cityName) return;
 
-        const name = cityName.textContent.trim();
-        const city = cities.find(c => c.name === name);
+        const city = state.cities.find(c => c.name === cityName);
         if (!city) return;
 
         const timeElement = card.querySelector('.city-time');
@@ -135,13 +223,12 @@ function updateTime() {
 
         const periodElement = card.querySelector('.time-period');
         if (periodElement) {
-            const isDayTime = true;
-            const hour = new Date().toLocaleString('en-US', {
+            const hour = parseInt(new Date().toLocaleString('en-US', {
                 timeZone: city.timezone,
                 hour: '2-digit',
                 hour12: false
-            });
-            const isDay = parseInt(hour) >= 6 && parseInt(hour) < 18;
+            }));
+            const isDay = hour >= 6 && hour < 18;
             periodElement.className = `time-period ${isDay ? 'day' : 'night'}`;
             periodElement.textContent = isDay ? '☀️ Day' : '🌙 Night';
         }
@@ -154,125 +241,137 @@ function addCity() {
     if (!input) return;
 
     const cityName = input.value.trim();
-    if (!cityName) return;
-
-    const cityExists = cities.some(c => c.name.toLowerCase() === cityName.toLowerCase());
-    if (cityExists) {
-        alert('City already added');
+    if (!cityName) {
+        showToast('Please enter a city name', 'warning');
         return;
     }
 
-    // Try to find in default cities
+    const cityExists = state.cities.some(c => c.name.toLowerCase() === cityName.toLowerCase());
+    if (cityExists) {
+        showToast(`${cityName} is already added`, 'warning');
+        return;
+    }
+
     const found = defaultCities.find(c => c.name.toLowerCase() === cityName.toLowerCase());
     if (found) {
-        cities.push(found);
+        state.cities.push({ ...found });
         input.value = '';
         saveCitiesToStorage();
         renderCities();
+        showToast(`✅ Added ${found.name}!`, 'success');
+        
+        // Close modal
+        const modal = document.getElementById('cityModal');
+        if (modal) modal.classList.remove('show');
         return;
     }
 
-    alert('City not found in default list');
+    showToast('City not found in default list', 'error');
 }
 
 // Remove city
 function removeCity(cityName) {
-    cities = cities.filter(c => c.name !== cityName);
+    if (!confirm(`Remove ${cityName}?`)) return;
+    
+    state.cities = state.cities.filter(c => c.name !== cityName);
     saveCitiesToStorage();
     renderCities();
+    showToast(`Removed ${cityName}`, 'info');
 }
 
-// Storage functions
+// ========== STORAGE ==========
+
 function saveCitiesToStorage() {
-    localStorage.setItem('worldTimeCities', JSON.stringify(cities));
+    try {
+        localStorage.setItem('worldTimeCities', JSON.stringify(state.cities));
+    } catch (e) {
+        showToast('Failed to save cities', 'error');
+    }
 }
 
 function loadCitiesFromStorage() {
-    const stored = localStorage.getItem('worldTimeCities');
-    if (stored) {
-        try {
+    try {
+        const stored = localStorage.getItem('worldTimeCities');
+        if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                cities = parsed;
+                state.cities = parsed;
                 return;
             }
-        } catch (e) {
-            // Silent catch - use defaults
         }
+    } catch (e) {
+        // Silent catch
     }
-    cities = JSON.parse(JSON.stringify(defaultCities));
+    state.cities = JSON.parse(JSON.stringify(defaultCities));
     saveCitiesToStorage();
 }
 
-// Settings
 function saveSettings() {
-    localStorage.setItem('worldTimeSettings', JSON.stringify({
-        use24HourFormat,
-        showSeconds,
-        darkMode
-    }));
+    try {
+        localStorage.setItem('worldTimeSettings', JSON.stringify({
+            use24HourFormat: state.use24HourFormat,
+            showSeconds: state.showSeconds,
+            darkMode: state.darkMode,
+            sortBy: state.sortBy
+        }));
+    } catch (e) {
+        showToast('Failed to save settings', 'error');
+    }
 }
 
 function loadSettings() {
-    const stored = localStorage.getItem('worldTimeSettings');
-    if (stored) {
-        try {
+    try {
+        const stored = localStorage.getItem('worldTimeSettings');
+        if (stored) {
             const settings = JSON.parse(stored);
-            use24HourFormat = settings.use24HourFormat ?? true;
-            showSeconds = settings.showSeconds ?? true;
-            darkMode = settings.darkMode ?? false;
-        } catch (e) {
-            // Silent catch - use defaults
+            state.use24HourFormat = settings.use24HourFormat ?? true;
+            state.showSeconds = settings.showSeconds ?? true;
+            state.darkMode = settings.darkMode ?? false;
+            state.sortBy = settings.sortBy ?? 'default';
         }
+    } catch (e) {
+        // Silent catch
     }
 }
 
-// Setup event listeners
+// ========== EVENT LISTENERS ==========
+
 function setupEventListeners() {
+    // Search with debounce
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', renderCities);
+        const debouncedRender = debounce(renderCities, 150);
+        searchInput.addEventListener('input', debouncedRender);
     }
 
-    // Add City Modal - Open button
+    // Add City Modal - Open
     const addBtn = document.getElementById('addCityBtn');
-    console.log('🔘 addCityBtn pronađen:', addBtn ? 'DA' : 'NE');
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            console.log('✅ addCityBtn KLIKNUT!');
             const modal = document.getElementById('cityModal');
-            console.log('📭 cityModal pronađen:', modal ? 'DA' : 'NE');
             if (modal) {
                 modal.classList.add('show');
-                console.log('📂 Modal klase:', modal.className);
                 const cityInput = document.getElementById('cityInput');
-                if (cityInput) cityInput.focus();
+                if (cityInput) {
+                    cityInput.value = '';
+                    cityInput.focus();
+                }
             }
         });
-    } else {
-        console.error('❌ addCityBtn NIJE pronađen!');
     }
 
-    // Add City Modal - Confirm button
+    // Add City Modal - Confirm
     const confirmBtn = document.getElementById('confirmBtn');
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-            addCity();
-            const modal = document.getElementById('cityModal');
-            if (modal) {
-                modal.classList.remove('show');
-            }
-        });
+        confirmBtn.addEventListener('click', addCity);
     }
 
-    // Settings Modal
+    // Settings Modal - Open
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
             const modal = document.getElementById('settingsModal');
-            if (modal) {
-                modal.classList.add('show');
-            }
+            if (modal) modal.classList.add('show');
         });
     }
 
@@ -281,64 +380,79 @@ function setupEventListeners() {
     closeButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            if (modal) {
-                modal.classList.remove('show');
-            }
+            if (modal) modal.classList.remove('show');
         });
     });
 
+    // City input - Enter key
     const cityInput = document.getElementById('cityInput');
     if (cityInput) {
         cityInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 addCity();
-                const modal = document.getElementById('cityModal');
-                if (modal) {
-                    modal.classList.remove('show');
-                }
             }
         });
     }
 
+    // Format 24-hour checkbox
     const format24Checkbox = document.getElementById('format24Hour');
     if (format24Checkbox) {
+        format24Checkbox.checked = state.use24HourFormat;
         format24Checkbox.addEventListener('change', (e) => {
-            use24HourFormat = e.target.checked;
+            state.use24HourFormat = e.target.checked;
             saveSettings();
             renderCities();
         });
     }
 
+    // Show seconds checkbox
     const showSecondsCheckbox = document.getElementById('showSeconds');
     if (showSecondsCheckbox) {
+        showSecondsCheckbox.checked = state.showSeconds;
         showSecondsCheckbox.addEventListener('change', (e) => {
-            showSeconds = e.target.checked;
+            state.showSeconds = e.target.checked;
             saveSettings();
             renderCities();
         });
     }
 
+    // Dark mode checkbox
     const darkModeCheckbox = document.getElementById('darkMode');
     if (darkModeCheckbox) {
+        darkModeCheckbox.checked = state.darkMode;
         darkModeCheckbox.addEventListener('change', (e) => {
-            darkMode = e.target.checked;
+            state.darkMode = e.target.checked;
             saveSettings();
             applyDarkMode();
-            renderCities();
         });
     }
 
+    // Sort buttons
+    const sortButtons = document.querySelectorAll('[data-sort]');
+    sortButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            state.sortBy = e.target.dataset.sort;
+            saveSettings();
+            renderCities();
+            
+            // Update active button
+            sortButtons.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+
+    // Reset button
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-            if (confirm('Reset to default cities?')) {
-                cities = JSON.parse(JSON.stringify(defaultCities));
+            if (confirm('Reset to default 20 cities?')) {
+                state.cities = JSON.parse(JSON.stringify(defaultCities));
                 saveCitiesToStorage();
                 renderCities();
+                showToast('Reset to defaults', 'info');
                 const modal = document.getElementById('settingsModal');
-                if (modal) {
-                    modal.classList.remove('show');
-                }
+                if (modal) modal.classList.remove('show');
             }
         });
     }
@@ -349,33 +463,54 @@ function setupEventListeners() {
             e.target.classList.remove('show');
         }
     });
+
+    // ESC key to close modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.show').forEach(modal => {
+                modal.classList.remove('show');
+            });
+        }
+    });
+
+    // Dark mode toggle button
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', () => {
+            state.darkMode = !state.darkMode;
+            saveSettings();
+            applyDarkMode();
+            const checkbox = document.getElementById('darkMode');
+            if (checkbox) checkbox.checked = state.darkMode;
+        });
+    }
 }
 
-// Apply dark mode
+// ========== THEME ==========
+
 function applyDarkMode() {
-    if (darkMode) {
+    if (state.darkMode) {
         document.body.classList.add('dark-mode');
     } else {
         document.body.classList.remove('dark-mode');
     }
 }
 
-// Initialize
+// ========== INITIALIZATION ==========
+
 function init() {
-    console.log('🚀 init() poziva se...');
     loadSettings();
     loadCitiesFromStorage();
-    setupEventListeners();
+    
+    // Apply theme before render to avoid flash
     applyDarkMode();
+    
+    setupEventListeners();
     renderCities();
 
     // Update time every 500ms
     setInterval(updateTime, 500);
-    console.log('✅ init() gotova');
 }
 
 // Start when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM je spreman, pozivam init()');
-    init();
-});
+document.addEventListener('DOMContentLoaded', init);

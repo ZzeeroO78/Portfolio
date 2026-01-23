@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fetch Test Inline</title>
+    <style>
+        body { font-family: monospace; background: #111; color: #fff; padding: 20px; }
+        .log { margin: 5px 0; padding: 10px; background: #222; border-left: 3px solid #666; }
+        .success { border-left-color: green; color: #afa; }
+        .error { border-left-color: red; color: #faa; }
+    </style>
+</head>
+<body>
+    <h1>API Fetch Test</h1>
+    <div id="logs"></div>
+    
+    <script>
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = new Date().toLocaleTimeString() + ': ' + msg;
+            document.getElementById('logs').appendChild(div);
+            console.log(msg);
+        }
+
+        async function test() {
+            log('Starting test...', 'info');
+            
+            // Test 1: Simple fetch
+            log('Test 1: Simple API call to Open-Meteo...', 'info');
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,relative_humidity_2m&timezone=auto');
+                const data = await response.json();
+                if (data.current) {
+                    log(`Test 1 SUCCESS: London temp = ${data.current.temperature_2m}°C`, 'success');
+                } else {
+                    log(`Test 1 FAIL: No current data`, 'error');
+                }
+            } catch (e) {
+                log(`Test 1 ERROR: ${e.message}`, 'error');
+            }
+            
+            // Test 2: With AbortController timeout
+            log('Test 2: With AbortController (8 second timeout)...', 'info');
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 8000);
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current=temperature_2m&timezone=auto', { signal: controller.signal });
+                clearTimeout(timeout);
+                const data = await response.json();
+                if (data.current) {
+                    log(`Test 2 SUCCESS: New York temp = ${data.current.temperature_2m}°C`, 'success');
+                } else {
+                    log(`Test 2 FAIL: No current data`, 'error');
+                }
+            } catch (e) {
+                log(`Test 2 ERROR: ${e.message}`, 'error');
+            }
+            
+            // Test 3: Test cityCoordinates access
+            log('Test 3: Check if cityCoordinates is accessible...', 'info');
+            try {
+                if (typeof cityCoordinates !== 'undefined') {
+                    const coords = cityCoordinates['london'];
+                    log(`Test 3 SUCCESS: Found London coords: ${coords.lat}, ${coords.lon}`, 'success');
+                } else {
+                    log(`Test 3 FAIL: cityCoordinates not defined`, 'error');
+                }
+            } catch (e) {
+                log(`Test 3 ERROR: ${e.message}`, 'error');
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>
