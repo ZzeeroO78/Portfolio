@@ -14,7 +14,7 @@ const state = {
 };
 
 const defaultCities = [
-    // Europe (20 cities)
+    // Europe - Western & Northern (25 cities)
     { name: 'London', timezone: 'Europe/London' },
     { name: 'Paris', timezone: 'Europe/Paris' },
     { name: 'Berlin', timezone: 'Europe/Berlin' },
@@ -35,8 +35,25 @@ const defaultCities = [
     { name: 'Zurich', timezone: 'Europe/Zurich' },
     { name: 'Geneva', timezone: 'Europe/Zurich' },
     { name: 'Lisbon', timezone: 'Europe/Lisbon' },
+    { name: 'Munich', timezone: 'Europe/Berlin' },
+    { name: 'Milan', timezone: 'Europe/Rome' },
+    { name: 'Barcelona', timezone: 'Europe/Madrid' },
+    { name: 'Lyon', timezone: 'Europe/Paris' },
+    { name: 'Oslo', timezone: 'Europe/Oslo' },
     
-    // Asia (20 cities)
+    // Europe - Balkans (10 cities)
+    { name: 'Sarajevo', timezone: 'Europe/Sarajevo' },
+    { name: 'Belgrade', timezone: 'Europe/Belgrade' },
+    { name: 'Zagreb', timezone: 'Europe/Zagreb' },
+    { name: 'Ljubljana', timezone: 'Europe/Ljubljana' },
+    { name: 'Bucharest', timezone: 'Europe/Bucharest' },
+    { name: 'Sofia', timezone: 'Europe/Sofia' },
+    { name: 'Skopje', timezone: 'Europe/Skopje' },
+    { name: 'Tirana', timezone: 'Europe/Tirane' },
+    { name: 'Podgorica', timezone: 'Europe/Podgorica' },
+    { name: 'Pristina', timezone: 'Europe/Belgrade' },
+    
+    // Asia (22 cities)
     { name: 'Tokyo', timezone: 'Asia/Tokyo' },
     { name: 'Beijing', timezone: 'Asia/Shanghai' },
     { name: 'Shanghai', timezone: 'Asia/Shanghai' },
@@ -57,8 +74,10 @@ const defaultCities = [
     { name: 'Kuala Lumpur', timezone: 'Asia/Kuala_Lumpur' },
     { name: 'Jakarta', timezone: 'Asia/Jakarta' },
     { name: 'Karachi', timezone: 'Asia/Karachi' },
+    { name: 'Bangkok', timezone: 'Asia/Bangkok' },
+    { name: 'Hanoi', timezone: 'Asia/Ho_Chi_Minh' },
     
-    // Americas (17 cities)
+    // Americas (18 cities)
     { name: 'New York', timezone: 'America/New_York' },
     { name: 'Los Angeles', timezone: 'America/Los_Angeles' },
     { name: 'Chicago', timezone: 'America/Chicago' },
@@ -76,8 +95,9 @@ const defaultCities = [
     { name: 'Miami', timezone: 'America/New_York' },
     { name: 'Seattle', timezone: 'America/Los_Angeles' },
     { name: 'San Francisco', timezone: 'America/Los_Angeles' },
+    { name: 'Montreal', timezone: 'America/Toronto' },
     
-    // Africa (8 cities)
+    // Africa (10 cities)
     { name: 'Cairo', timezone: 'Africa/Cairo' },
     { name: 'Lagos', timezone: 'Africa/Lagos' },
     { name: 'Johannesburg', timezone: 'Africa/Johannesburg' },
@@ -86,14 +106,17 @@ const defaultCities = [
     { name: 'Algiers', timezone: 'Africa/Algiers' },
     { name: 'Dakar', timezone: 'Africa/Dakar' },
     { name: 'Accra', timezone: 'Africa/Accra' },
+    { name: 'Cape Town', timezone: 'Africa/Johannesburg' },
+    { name: 'Khartoum', timezone: 'Africa/Khartoum' },
     
-    // Oceania (6 cities)
+    // Oceania (7 cities)
     { name: 'Sydney', timezone: 'Australia/Sydney' },
     { name: 'Melbourne', timezone: 'Australia/Melbourne' },
     { name: 'Brisbane', timezone: 'Australia/Brisbane' },
     { name: 'Perth', timezone: 'Australia/Perth' },
     { name: 'Auckland', timezone: 'Pacific/Auckland' },
-    { name: 'Fiji', timezone: 'Pacific/Fiji' }
+    { name: 'Fiji', timezone: 'Pacific/Fiji' },
+    { name: 'Honolulu', timezone: 'Pacific/Honolulu' }
 ];
 
 // ========== UTILITY FUNCTIONS ==========
