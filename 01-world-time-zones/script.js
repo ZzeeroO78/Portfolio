@@ -14,29 +14,135 @@ const state = {
 };
 
 const defaultCities = [
+    // Europe (20 cities)
     { name: 'London', timezone: 'Europe/London' },
-    { name: 'New York', timezone: 'America/New_York' },
-    { name: 'Tokyo', timezone: 'Asia/Tokyo' },
     { name: 'Paris', timezone: 'Europe/Paris' },
-    { name: 'Sydney', timezone: 'Australia/Sydney' },
-    { name: 'Dubai', timezone: 'Asia/Dubai' },
-    { name: 'Singapore', timezone: 'Asia/Singapore' },
-    { name: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
-    { name: 'Los Angeles', timezone: 'America/Los_Angeles' },
-    { name: 'Toronto', timezone: 'America/Toronto' },
+    { name: 'Berlin', timezone: 'Europe/Berlin' },
+    { name: 'Madrid', timezone: 'Europe/Madrid' },
+    { name: 'Rome', timezone: 'Europe/Rome' },
+    { name: 'Amsterdam', timezone: 'Europe/Amsterdam' },
+    { name: 'Brussels', timezone: 'Europe/Brussels' },
+    { name: 'Vienna', timezone: 'Europe/Vienna' },
+    { name: 'Prague', timezone: 'Europe/Prague' },
+    { name: 'Budapest', timezone: 'Europe/Budapest' },
+    { name: 'Warsaw', timezone: 'Europe/Warsaw' },
     { name: 'Moscow', timezone: 'Europe/Moscow' },
+    { name: 'Istanbul', timezone: 'Europe/Istanbul' },
+    { name: 'Athens', timezone: 'Europe/Athens' },
+    { name: 'Dublin', timezone: 'Europe/Dublin' },
+    { name: 'Stockholm', timezone: 'Europe/Stockholm' },
+    { name: 'Copenhagen', timezone: 'Europe/Copenhagen' },
+    { name: 'Zurich', timezone: 'Europe/Zurich' },
+    { name: 'Geneva', timezone: 'Europe/Zurich' },
+    { name: 'Lisbon', timezone: 'Europe/Lisbon' },
+    
+    // Asia (20 cities)
+    { name: 'Tokyo', timezone: 'Asia/Tokyo' },
+    { name: 'Beijing', timezone: 'Asia/Shanghai' },
+    { name: 'Shanghai', timezone: 'Asia/Shanghai' },
+    { name: 'Hong Kong', timezone: 'Asia/Hong_Kong' },
+    { name: 'Singapore', timezone: 'Asia/Singapore' },
     { name: 'Bangkok', timezone: 'Asia/Bangkok' },
+    { name: 'Ho Chi Minh City', timezone: 'Asia/Ho_Chi_Minh' },
+    { name: 'Manila', timezone: 'Asia/Manila' },
+    { name: 'Seoul', timezone: 'Asia/Seoul' },
+    { name: 'Delhi', timezone: 'Asia/Kolkata' },
+    { name: 'Mumbai', timezone: 'Asia/Kolkata' },
+    { name: 'Bangalore', timezone: 'Asia/Kolkata' },
+    { name: 'Dubai', timezone: 'Asia/Dubai' },
+    { name: 'Abu Dhabi', timezone: 'Asia/Dubai' },
+    { name: 'Doha', timezone: 'Asia/Qatar' },
+    { name: 'Riyadh', timezone: 'Asia/Riyadh' },
+    { name: 'Tel Aviv', timezone: 'Asia/Jerusalem' },
+    { name: 'Kuala Lumpur', timezone: 'Asia/Kuala_Lumpur' },
+    { name: 'Jakarta', timezone: 'Asia/Jakarta' },
+    { name: 'Karachi', timezone: 'Asia/Karachi' },
+    
+    // Americas (17 cities)
+    { name: 'New York', timezone: 'America/New_York' },
+    { name: 'Los Angeles', timezone: 'America/Los_Angeles' },
+    { name: 'Chicago', timezone: 'America/Chicago' },
+    { name: 'Denver', timezone: 'America/Denver' },
+    { name: 'Toronto', timezone: 'America/Toronto' },
+    { name: 'Vancouver', timezone: 'America/Vancouver' },
     { name: 'Mexico City', timezone: 'America/Mexico_City' },
     { name: 'Sao Paulo', timezone: 'America/Sao_Paulo' },
-    { name: 'Auckland', timezone: 'Pacific/Auckland' },
-    { name: 'Cairo', timezone: 'Africa/Cairo' },
-    { name: 'Lagos', timezone: 'Africa/Lagos' },
     { name: 'Buenos Aires', timezone: 'America/Argentina/Buenos_Aires' },
     { name: 'Lima', timezone: 'America/Lima' },
-    { name: 'Vancouver', timezone: 'America/Vancouver' }
+    { name: 'Bogota', timezone: 'America/Bogota' },
+    { name: 'Caracas', timezone: 'America/Caracas' },
+    { name: 'Santiago', timezone: 'America/Santiago' },
+    { name: 'Houston', timezone: 'America/Chicago' },
+    { name: 'Miami', timezone: 'America/New_York' },
+    { name: 'Seattle', timezone: 'America/Los_Angeles' },
+    { name: 'San Francisco', timezone: 'America/Los_Angeles' },
+    
+    // Africa (8 cities)
+    { name: 'Cairo', timezone: 'Africa/Cairo' },
+    { name: 'Lagos', timezone: 'Africa/Lagos' },
+    { name: 'Johannesburg', timezone: 'Africa/Johannesburg' },
+    { name: 'Nairobi', timezone: 'Africa/Nairobi' },
+    { name: 'Casablanca', timezone: 'Africa/Casablanca' },
+    { name: 'Algiers', timezone: 'Africa/Algiers' },
+    { name: 'Dakar', timezone: 'Africa/Dakar' },
+    { name: 'Accra', timezone: 'Africa/Accra' },
+    
+    // Oceania (6 cities)
+    { name: 'Sydney', timezone: 'Australia/Sydney' },
+    { name: 'Melbourne', timezone: 'Australia/Melbourne' },
+    { name: 'Brisbane', timezone: 'Australia/Brisbane' },
+    { name: 'Perth', timezone: 'Australia/Perth' },
+    { name: 'Auckland', timezone: 'Pacific/Auckland' },
+    { name: 'Fiji', timezone: 'Pacific/Fiji' }
 ];
 
 // ========== UTILITY FUNCTIONS ==========
+
+// Show suggestions dropdown
+function showSuggestions(input) {
+    const suggestionsContainer = document.getElementById('suggestions');
+    if (!suggestionsContainer) return;
+    
+    const searchTerm = input.value.toLowerCase().trim();
+    
+    if (searchTerm.length === 0) {
+        suggestionsContainer.innerHTML = '';
+        return;
+    }
+    
+    // Filter available cities (not already added)
+    const suggestions = defaultCities.filter(city => 
+        city.name.toLowerCase().includes(searchTerm) &&
+        !state.cities.some(c => c.name === city.name)
+    ).slice(0, 8); // Show max 8 suggestions
+    
+    if (suggestions.length === 0) {
+        suggestionsContainer.innerHTML = '<div class="suggestion-item disabled">No cities found</div>';
+        return;
+    }
+    
+    suggestionsContainer.innerHTML = suggestions.map(city => `
+        <div class="suggestion-item" onclick="selectCity('${city.name}')">
+            <div class="suggestion-name">${city.name}</div>
+            <div class="suggestion-zone">${city.timezone}</div>
+        </div>
+    `).join('');
+}
+
+// Select city from suggestions
+function selectCity(cityName) {
+    const input = document.getElementById('cityInput');
+    if (input) input.value = cityName;
+    
+    const suggestionsContainer = document.getElementById('suggestions');
+    if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+    
+    // Auto-focus confirm button
+    setTimeout(() => {
+        const confirmBtn = document.getElementById('confirmBtn');
+        if (confirmBtn) confirmBtn.focus();
+    }, 100);
+}
 
 // Toast notification system
 function showToast(message, type = 'info', duration = 3000) {
@@ -252,10 +358,16 @@ function addCity() {
         return;
     }
 
+    // Find in available cities
     const found = defaultCities.find(c => c.name.toLowerCase() === cityName.toLowerCase());
     if (found) {
         state.cities.push({ ...found });
         input.value = '';
+        
+        // Clear suggestions
+        const suggestionsContainer = document.getElementById('suggestions');
+        if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+        
         saveCitiesToStorage();
         renderCities();
         showToast(`✅ Added ${found.name}!`, 'success');
@@ -266,7 +378,7 @@ function addCity() {
         return;
     }
 
-    showToast('City not found in default list', 'error');
+    showToast(`"${cityName}" not found in our list of ${defaultCities.length} cities`, 'error');
 }
 
 // Remove city
@@ -355,6 +467,21 @@ function setupEventListeners() {
                 if (cityInput) {
                     cityInput.value = '';
                     cityInput.focus();
+                    
+                    // Show popular available cities when modal opens
+                    const suggestionsContainer = document.getElementById('suggestions');
+                    if (suggestionsContainer) {
+                        const availableCities = defaultCities.filter(city =>
+                            !state.cities.some(c => c.name === city.name)
+                        ).slice(0, 8);
+                        
+                        suggestionsContainer.innerHTML = availableCities.map(city => `
+                            <div class="suggestion-item" onclick="selectCity('${city.name}')">
+                                <div class="suggestion-name">${city.name}</div>
+                                <div class="suggestion-zone">${city.timezone}</div>
+                            </div>
+                        `).join('');
+                    }
                 }
             }
         });
@@ -380,13 +507,22 @@ function setupEventListeners() {
     closeButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const modal = e.target.closest('.modal');
-            if (modal) modal.classList.remove('show');
+            if (modal) {
+                modal.classList.remove('show');
+                // Clear suggestions when modal closes
+                const suggestionsContainer = document.getElementById('suggestions');
+                if (suggestionsContainer) suggestionsContainer.innerHTML = '';
+            }
         });
     });
 
-    // City input - Enter key
+    // City input - Enter key and suggestions
     const cityInput = document.getElementById('cityInput');
     if (cityInput) {
+        const debouncedSuggestions = debounce(() => showSuggestions(cityInput), 100);
+        
+        cityInput.addEventListener('input', debouncedSuggestions);
+        
         cityInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();

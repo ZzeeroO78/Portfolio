@@ -901,3 +901,70 @@ header h2 {
         display: none;
     }
 }
+
+/* ========== CITY SUGGESTIONS ========== */
+.suggestions {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid var(--primary-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: var(--card-bg);
+    margin-top: -2px;
+    z-index: 1001;
+}
+
+.suggestion-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.suggestion-item.disabled {
+    cursor: default;
+    color: var(--text-light);
+    background-color: var(--secondary-bg);
+    text-align: center;
+}
+
+.suggestion-item.disabled:hover {
+    background-color: var(--secondary-bg);
+    color: var(--text-light);
+}
+
+.suggestion-name {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.suggestion-zone {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+.suggestion-item:hover .suggestion-zone {
+    opacity: 1;
+}
+
+/* Fix modal-input to show suggestions */
+.modal-input {
+    margin-bottom: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.suggestions:not(:empty) + .suggestions {
+    border-radius: 0 0 8px 8px;
+}
