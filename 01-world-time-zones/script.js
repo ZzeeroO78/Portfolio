@@ -236,15 +236,21 @@ function setupEventListeners() {
 
     // Add City Modal - Open button
     const addBtn = document.getElementById('addCityBtn');
+    console.log('🔘 addCityBtn pronađen:', addBtn ? 'DA' : 'NE');
     if (addBtn) {
         addBtn.addEventListener('click', () => {
+            console.log('✅ addCityBtn KLIKNUT!');
             const modal = document.getElementById('cityModal');
+            console.log('📭 cityModal pronađen:', modal ? 'DA' : 'NE');
             if (modal) {
                 modal.classList.add('show');
+                console.log('📂 Modal klase:', modal.className);
                 const cityInput = document.getElementById('cityInput');
                 if (cityInput) cityInput.focus();
             }
         });
+    } else {
+        console.error('❌ addCityBtn NIJE pronađen!');
     }
 
     // Add City Modal - Confirm button
@@ -356,6 +362,7 @@ function applyDarkMode() {
 
 // Initialize
 function init() {
+    console.log('🚀 init() poziva se...');
     loadSettings();
     loadCitiesFromStorage();
     setupEventListeners();
@@ -364,7 +371,11 @@ function init() {
 
     // Update time every 500ms
     setInterval(updateTime, 500);
+    console.log('✅ init() gotova');
 }
 
 // Start when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM je spreman, pozivam init()');
+    init();
+});
